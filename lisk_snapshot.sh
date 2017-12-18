@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-### crontab example(s) ########################################################
+### crontab example(s) ###############################################
 
 # Production
 #*/5 * * * * /usr/bin/bash /opt/lisk/client/lisk_snapshot.sh  -b /opt/lisk/backup -d 2 -g > /dev/null 2>&1
@@ -25,8 +25,7 @@
 # Debug
 #*/2 * * * * /usr/bin/bash /opt/lisk/client/lisk_snapshot.sh  -b /opt/lisk/backup -g  > /opt/lisk/client/logs/snapshot_cron."`date +\%Y\%m\%d_\%H\%M\%S`".log 2>&1
 
-
-### Init. Env. ################################################################
+### Init. Env. #######################################################
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 # shellcheck disable=SC1090
@@ -34,8 +33,7 @@ cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 # shellcheck disable=SC1090
 . "$(pwd)/env.sh"
 
-
-### Variables Definition ######################################################
+### Variables Definition #############################################
 
 SNAPSHOT_CONFIG="$(pwd)/etc/snapshot.json"
 TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
@@ -61,7 +59,7 @@ STALL_THRESHOLD_CURRENT="10"
 LOCK_LOCATION="$(pwd)/locks"
 LOCK_FILE="$LOCK_LOCATION/snapshot.lock"
 
-### Function(s) ###############################################################
+### Function(s) ######################################################
 
 parse_option() {
 	OPTIND=1
@@ -138,8 +136,7 @@ now() {
 	date +'%Y-%m-%d %H:%M:%S'
 }
 
-
-### MAIN ######################################################################
+### MAIN #############################################################
 
 parse_option "$@"
 
