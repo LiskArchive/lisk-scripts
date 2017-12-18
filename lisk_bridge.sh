@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# LiskHQ/lisk-scripts/lisk-bridge
+# LiskHQ/lisk-scripts/lisk_bridge.sh
 # Copyright (C) 2017 Lisk Foundation
 #
 # Connects source and target versions of Lisk in order to migrate
