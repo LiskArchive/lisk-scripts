@@ -1,10 +1,10 @@
 #!/bin/bash
-# LiskHQ/lisk-bridge
+#
+# LiskHQ/lisk-scripts/lisk-bridge
+# Copyright (C) 2017 Lisk Foundation
 #
 # Connects source and target versions of Lisk in order to migrate
 # gracefully between protocol changes.
-#
-# Copyright (C) 2017 Lisk Foundation
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

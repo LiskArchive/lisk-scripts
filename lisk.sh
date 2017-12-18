@@ -1,6 +1,6 @@
 #!/bin/bash
-# 
-# LiskHQ/lisk-build
+#
+# LiskHQ/lisk-scripts/lisk.sh
 # Copyright (C) 2017 Lisk Foundation
 #
 # This program is free software: you can redistribute it and/or modify

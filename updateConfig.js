@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisk-build
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-scripts/updateConfig.js
+ * Copyright (C) 2017 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
