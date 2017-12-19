@@ -231,7 +231,7 @@ configure_lisk() {
 	cd "$LISK_INSTALL" || exit 2
 
 	echo -e "\nColdstarting Lisk for the first time"
-	if ! bash lisk.sh coldstart -f "$LISK_INSTALL"/etc/blockchain.db.gz; then
+	if ! bash lisk.sh coldstart -f "$LISK_INSTALL"/var/db/blockchain.db.gz; then
 		echo "Installation failed. Cleaning up..."
 		cleanup_installation
 	fi
@@ -308,7 +308,7 @@ start_lisk() { # Parse the various startup flags
 	else
 		if [[ "$SYNC" == "yes" ]]; then
 				echo -e "\nStarting Lisk from genesis"
-				bash lisk.sh rebuild -f etc/blockchain.db.gz
+				bash lisk.sh rebuild -f var/db/blockchain.db.gz
 		 else
 			 echo -e "\nStarting Lisk with current blockchain"
 			 cd "$LISK_INSTALL" || exit 2

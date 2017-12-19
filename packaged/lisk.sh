@@ -384,7 +384,7 @@ parse_option() {
 				fi ;;
 
 			0)
-				DB_SNAPSHOT="$(pwd)/etc/blockchain.db.gz"
+				DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
 				DB_DOWNLOAD=N
 				;;
 
