@@ -1,25 +1,65 @@
-# lisk-scripts
+# Lisk Scripts
 
-This repository contains scripts used to install and manage Lisk.
+This repository contains various `bash` and `node` scripts used to install and manage [Lisk](https://github.com/LiskHQ/lisk). These scripts were originally maintained within [Lisk Build](https://github.com/LiskHQ/lisk-build), but are now developed here for independent release management.
 
-# Lisk
-
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
-
-[![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-core/development)](https://jenkins.lisk.io/job/lisk-core/job/development)
-[![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![Join the chat at https://gitter.im/LiskHQ/lisk](https://badges.gitter.im/LiskHQ/lisk.svg)](https://gitter.im/LiskHQ/lisk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+## Index
+
+- **Downloaded** scripts hosted at https://downloads.lisk.io/:
+
+  - `installLisk.sh`
+
+    Installs or upgrades the official Lisk binary packages.
+
+  - `setup_docker.Linux`
+
+    Installs the latest version of Docker on Debian/Ubuntu Linux.
+
+  - `setup_postgresql.Linux`
+
+    Installs the latest version of Postgres on Debian/Ubuntu Linux.
+
+- **Packaged** scripts included in each [Lisk Build](https://github.com/LiskHQ/lisk-build):
+
+  - `env.sh`
+
+    Sets various environment variables used by other scripts.
+
+  - `lisk_bridge.sh`
+
+    Migrates a Lisk installation from one version to the next, acting as a bridge between hard forks.
+
+  - `lisk_snapshot.sh`
+
+    Generates verified blockchain snapshots against a running instance of Lisk.
+
+  - `lisk.sh`
+
+    Manages the Lisk application process and attached postgres database.
+
+  - `shared.sh`
+
+    Defines various `bash` functions used by other scripts.
+
+  - `tune.sh`
+
+    Optimizes the `postgres` configuration according to the memory of the host machine.
+
+  - `updateConfig.js`
+
+    Migrates the configuration of a Lisk installation between package upgrades.
 
 ## Authors
 
-- Boris Povod <boris@crypti.me>
-- Pavel Nekrasov <landgraf.paul@gmail.com>
-- Sebastian Stupurac <stupurac.sebastian@gmail.com>
-- Oliver Beddows <oliver@lightcurve.io>
-- Isabella Dell <isabella@lightcurve.io>
-- Marius Serek <mariusz@serek.net>
-- Maciej Baj <maciej@lightcurve.io>
+- https://github.com/karmacoma
+- https://github.com/Isabello
+- https://github.com/Gr33nDrag0n69
+- https://github.com/Nazgolze
+
+## Contributors
+
+https://github.com/LiskHQ/lisk-scripts/graphs/contributors
 
 ## License
 
@@ -30,16 +70,3 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the [GNU General Public License](https://github.com/LiskHQ/lisk/tree/master/LICENSE) along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-***
-
-This program also incorporates work previously released with lisk `0.7.0` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
-
-Copyright © 2016-2017 Lisk Foundation  
-Copyright © 2015 Crypti
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
