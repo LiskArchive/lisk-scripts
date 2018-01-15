@@ -111,9 +111,9 @@ parse_option() {
 
 			g) GENERIC_COPY="Y" ;;
 
-			?) usage; exit 1 ;;
-
 			:) echo "$(now) Missing option argument for -$OPTARG" >&2; exit 1 ;;
+
+			?) usage; exit 1 ;;
 
 			*) echo "$(now) Unimplemented option: -$OPTARG" >&2; exit 1 ;;
 
