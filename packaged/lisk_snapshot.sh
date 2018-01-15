@@ -122,7 +122,7 @@ parse_option() {
 }
 
 usage() {
-	echo -e "\nUsage: $0 [-t <snapshot.json>] [-s <config.json>] [-b <backup directory>] [-d <days to keep>] [-r <round>] [-g] [-m <vacuum delay>]\n"
+	echo -e "\\nUsage: $0 [-t <snapshot.json>] [-s <config.json>] [-b <backup directory>] [-d <days to keep>] [-r <round>] [-g] [-m <vacuum delay>]\\n"
 	echo " -t <snapshot.json>        -- config.json to use for creating the snapshot"
 	echo " -s <config.json>          -- config.json used by the target database"
 	echo " -b <backup directory>     -- Backup directory to output into. Default is ./backups"
@@ -140,7 +140,7 @@ now() {
 
 parse_option "$@"
 
-echo -e "\n$(now) Checking for existing snapshot operation"
+echo -e "\\n$(now) Checking for existing snapshot operation"
 
 if [ ! -f "$LOCK_FILE" ]; then
 	echo "√ Previous snapshot is not runnning. Proceeding."
@@ -158,23 +158,23 @@ fi
 mkdir -p "$LOCK_LOCATION" &> /dev/null
 touch "$LOCK_FILE" &> /dev/null
 
-echo -e "\n$(now) Cleaning old snapshot instance, database and logs"
+echo -e "\\n$(now) Cleaning old snapshot instance, database and logs"
 bash lisk.sh stop_node -p "$PM2_CONFIG" &> /dev/null
 cat /dev/null > "$LOG_LOCATION"
 dropdb --if-exists "$TARGET_DB_NAME" &> /dev/null
 
-echo -e "\n$(now) Deleting snapshots older then $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
+echo -e "\\n$(now) Deleting snapshots older then $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
 mkdir -p "$BACKUP_LOCATION" &> /dev/null
 find "$BACKUP_LOCATION" -name "${SOURCE_DB_NAME}*.gz" -mtime +"$(( DAYS_TO_KEEP - 1 ))" -exec rm {} \;
 
-echo -e "\n$(now) Executing vacuum on database '$SOURCE_DB_NAME' before copy"
+echo -e "\\n$(now) Executing vacuum on database '$SOURCE_DB_NAME' before copy"
 vacuumdb --analyze --full "$SOURCE_DB_NAME" &> /dev/null
 
-echo -e "\n$(now) Copying active database '$SOURCE_DB_NAME' to snapshot database '$TARGET_DB_NAME'"
+echo -e "\\n$(now) Copying active database '$SOURCE_DB_NAME' to snapshot database '$TARGET_DB_NAME'"
 createdb "$TARGET_DB_NAME" &> /dev/null
 pg_dump "$SOURCE_DB_NAME" | psql "$TARGET_DB_NAME" &> /dev/null
 
-echo -e "\n$(now) Beginning snapshot verification process"
+echo -e "\\n$(now) Beginning snapshot verification process"
 bash lisk.sh start -p "$PM2_CONFIG"
 
 MINUTES=0
@@ -182,7 +182,7 @@ until tail -n10 "$LOG_LOCATION" | (grep -q "Snapshot finished"); do
 	sleep 60
 
 	if [ "$( stat --format=%Y "$LOG_LOCATION" )" -le $(( $(date +%s) - ( STALL_THRESHOLD_CURRENT * 60 ) )) ]; then
-		echo -e "\n$(now) Snapshot process is stalled for $STALL_THRESHOLD_CURRENT minutes, cleaning up and exiting"
+		echo -e "\\n$(now) Snapshot process is stalled for $STALL_THRESHOLD_CURRENT minutes, cleaning up and exiting"
 		bash lisk.sh stop_node -p "$PM2_CONFIG" &> /dev/null
 		dropdb --if-exists "$TARGET_DB_NAME" &> /dev/null
 		rm -f "$LOCK_FILE" &> /dev/null
@@ -191,35 +191,35 @@ until tail -n10 "$LOG_LOCATION" | (grep -q "Snapshot finished"); do
 
 	MINUTES=$(( MINUTES + 1 ))
 	if (( MINUTES % PGSQL_VACUUM_DELAY == 0 )) 2> /dev/null; then
-		echo -e "\n$(now) Executing vacuum on table 'mem_round' of database '$TARGET_DB_NAME'"
+		echo -e "\\n$(now) Executing vacuum on table 'mem_round' of database '$TARGET_DB_NAME'"
 		DBSIZE1=$(( $( ./pgsql/bin/psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
 		vacuumdb --analyze --full --table 'mem_round' "$TARGET_DB_NAME" &> /dev/null
 		DBSIZE2=$(( $( ./pgsql/bin/psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
 		echo -e "$(now) Vacuum completed, database size: $DBSIZE1 MB => $DBSIZE2 MB"
 	fi
 done
-echo -e "\n$(now) Snapshot verification process completed"
+echo -e "\\n$(now) Snapshot verification process completed"
 
-echo -e "\n$(now) Deleting data on table 'peers' of database '$TARGET_DB_NAME'"
+echo -e "\\n$(now) Deleting data on table 'peers' of database '$TARGET_DB_NAME'"
 psql -d "$TARGET_DB_NAME" -c 'delete from peers;' &> /dev/null
 
-echo -e "\n$(now) Executing vacuum on database '$TARGET_DB_NAME' before dumping"
+echo -e "\\n$(now) Executing vacuum on database '$TARGET_DB_NAME' before dumping"
 vacuumdb --analyze --full "$TARGET_DB_NAME" &> /dev/null
 
-echo -e "\n$(now) Dumping snapshot database to gzip file"
+echo -e "\\n$(now) Dumping snapshot database to gzip file"
 HEIGHT="$(psql -d lisk_snapshot -t -c 'select height from blocks order by height desc limit 1;' | xargs)"
 BACKUP_FULLPATH="${BACKUP_LOCATION}/${SOURCE_DB_NAME}_backup-${HEIGHT}.gz"
 pg_dump -O "$TARGET_DB_NAME" | gzip > "$BACKUP_FULLPATH"
 
 if [ "$GENERIC_COPY" == "Y" ] 2> /dev/null; then
-	echo -e "\n$(now) Overwriting Generic Copy"
+	echo -e "\\n$(now) Overwriting Generic Copy"
 	cp -f "$BACKUP_FULLPATH" "$BACKUP_LOCATION"/blockchain.db.gz &> /dev/null
 fi
 
-echo -e "\n$(now) Cleaning up"
+echo -e "\\n$(now) Cleaning up"
 bash lisk.sh stop_node -p "$PM2_CONFIG" &> /dev/null
 dropdb --if-exists "$TARGET_DB_NAME" &> /dev/null
 rm -f "$LOCK_FILE" &> /dev/null
 
-echo -e "\n$(now) Snapshot Complete"
+echo -e "\\n$(now) Snapshot Complete"
 exit 0
