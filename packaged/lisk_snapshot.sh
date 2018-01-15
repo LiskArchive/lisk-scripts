@@ -71,7 +71,7 @@ parse_option() {
 					TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
 					LOG_LOCATION="$(grep "logFileName" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
 				else
-					echo "$(now) Config.json for snapshot not found. Please verify the file exists and try again."
+					echo "$(now) config.json for snapshot not found. Please verify the file exists and try again."
 					exit 1
 				fi ;;
 
@@ -80,7 +80,7 @@ parse_option() {
 					LISK_CONFIG="$OPTARG"
 					SOURCE_DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
 				else
-					echo "$(now) Config.json not found. Please verify the file exists and try again."
+					echo "$(now) config.json not found. Please verify the file exists and try again."
 					exit 1
 				fi ;;
 
