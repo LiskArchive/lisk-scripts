@@ -122,7 +122,7 @@ parse_option() {
 }
 
 usage() {
-	echo -e "\\nUsage: $0 [-t <snapshot.json>] [-s <config.json>] [-b <backup directory>] [-d <days to keep>] [-r <round>] [-g] [-m <vacuum delay>]\\n"
+	echo -e "\\nUsage: $0 [-t <snapshot.json>] [-s <config.json>] [-b <backup directory>] [-d <days to keep>] [-g] [-m <vacuum delay>]\\n"
 	echo " -t <snapshot.json>        -- config.json to use for creating the snapshot"
 	echo " -s <config.json>          -- config.json used by the target database"
 	echo " -b <backup directory>     -- Backup directory to output into. Default is ./backups"
