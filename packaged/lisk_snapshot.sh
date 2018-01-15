@@ -17,13 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-### crontab example(s) ###############################################
+### crontab example ###############################################
 
-# Production
-#*/5 * * * * /usr/bin/bash /opt/lisk/client/lisk_snapshot.sh  -b /opt/lisk/backup -d 2 -g > /dev/null 2>&1
-
-# Debug
-#*/2 * * * * /usr/bin/bash /opt/lisk/client/lisk_snapshot.sh  -b /opt/lisk/backup -g  > /opt/lisk/client/logs/snapshot_cron."`date +\%Y\%m\%d_\%H\%M\%S`".log 2>&1
+#*/12 * * * * /bin/bash /home/lisk/lisk-main/lisk_snapshot.sh -g > /home/lisk/lisk-main/logs/lisk_snapshot.log 2>&1
 
 ### Init. Env. #######################################################
 
