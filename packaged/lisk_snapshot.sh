@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # LiskHQ/lisk-scripts/lisk_snaphot.sh
 # Copyright (C) 2017 Lisk Foundation
