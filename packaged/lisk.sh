@@ -40,14 +40,14 @@ fi
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
 PM2_APP="$(grep "name" "$PM2_CONFIG" | cut -d'"' -f4)" >> /dev/null
 LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
-LISK_LOGS="$(grep "logFileName" "$LISK_CONFIG" | cut -f 4 -d'"')"
+LISK_LOGS="$(jq -r '.logFileName' "$LISK_CONFIG")"
 
 LOGS_DIR="$(pwd)/logs"
 
 # Allocates variables for use later, reusable for changing pm2 config.
 config() {
-	DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
-	DB_PORT="$(grep "port" "$LISK_CONFIG" -m2 | tail -n1 |cut -f 1 -d ',' | cut -f 2 -d ':')"
+	DB_NAME="$(jq -r '.db.database' "$LISK_CONFIG")"
+	DB_PORT="$(jq -r '.db.port' "$LISK_CONFIG")"
 	DB_USER="$USER"
 	DB_PASS="password"
 	DB_DATA="$(pwd)/pgsql/data"
@@ -58,9 +58,9 @@ config() {
 	REDIS_CONFIG="$(pwd)/etc/redis.conf"
 	REDIS_BIN="$(pwd)/bin/redis-server"
 	REDIS_CLI="$(pwd)/bin/redis-cli"
-	REDIS_ENABLED="$(grep "cacheEnabled" "$LISK_CONFIG" | cut -f 2 -d ':' |  sed 's: ::g' | cut -f 1 -d ',')"
-	REDIS_PORT="$(grep "port" "$LISK_CONFIG" -m3 | sed -n 3p | cut -f 2 -d':' | sed 's: ::g' | cut -f 1 -d ',')"
-	REDIS_PASSWORD="$(grep "password" "$LISK_CONFIG" -m2 | sed -n 2p | cut -f 2 -d ":" | cut -f 1 -d ',' | sed 's: ::g')"
+	REDIS_ENABLED="$(jq -r '.cacheEnabled' "$LISK_CONFIG")"
+	REDIS_PORT="$(jq -r '.redis.port' "$LISK_CONFIG")"
+	REDIS_PASSWORD="$(jq -r '.redis.password' "$LISK_CONFIG")"
 	REDIS_PID="$(pwd)/redis/redis_6380.pid"
 }
 
