@@ -339,8 +339,13 @@ upgrade_lisk() {
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
 
-	echo -e "\nCopying config.json entries from previous installation"
-	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	if [[ "$CONFIG_PATH" ]]; then
+		echo -e "\nCopying $CONFIG_PATH to new installation"
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$CONFIG_PATH" -n "$LISK_INSTALL"/config.json
+	else
+		echo -e "\nCopying config.json entries from previous installation"
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	fi
 }
 
 log_rotate() {
@@ -364,7 +369,7 @@ EOF_lisk-logrotate" &> /dev/null
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
+	echo "Usage: $0 <install|upgrade> [-d <directory>] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] [-c <CONFIG>]"
 	echo "install         -- install Lisk"
 	echo "upgrade         -- upgrade Lisk"
 	echo " -d <DIRECTORY> -- install location"
@@ -373,6 +378,7 @@ usage() {
 	echo " -h             -- rebuild instead of copying database"
 	echo " -u <URL>       -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>    -- Forces sync from 0"
+	echo " -c <CONFIG>    -- config path to use (only used during upgrade)"
 }
 
 parse_option() {
@@ -385,6 +391,7 @@ parse_option() {
 			 h) REBUILD=true ;;
 			 u) URL="$OPTARG" ;;
 			 0) SYNC="$OPTARG" ;;
+			 c) CONFIG_PATH="$OPTARG" ;;
 		 esac
 	 done
 
