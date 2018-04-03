@@ -37,6 +37,7 @@ parseOption() {
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
+			 d) DOWNLOAD_URL="$OPTARG" ;; # Download installLisk.sh from elsewhere
 		 esac
 	 done
 }
@@ -70,7 +71,11 @@ terminateLisk() {
 
 # Downloads the new Lisk client.
 downloadLisk() {
-	wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
+	if [ "$DOWNLOAD_URL" ] ; then
+		wget "$DOWNLOAD_URL"
+	else
+		wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
+	fi
 }
 
 # Executes the migration of the source installation
