@@ -1,5 +1,6 @@
 {
-    "port": 9000,
+    "wsPort": 9000,
+    "httpPort": 8000,
     "address": "0.0.0.0",
     "version": "9.9.9",
     "minVersion": "9.9.9",
@@ -9,13 +10,15 @@
     "trustProxy": false,
     "topAccounts": false,
     "cacheEnabled": false,
+    "wsWorkers": 1,
     "db": {
         "host": "localhost",
         "port": 5432,
         "database": "lisk_snapshot",
         "user": "",
         "password": "password",
-        "poolSize": 20,
+        "min": 0,
+        "max": 20,
         "poolIdleTimeout": 30000,
         "reapIntervalMillis": 1000,
         "logEvents": [
@@ -50,24 +53,19 @@
             "blackList": []
         },
         "options": {
-            "limits": {
-                "max": 0,
-                "delayMs": 0,
-                "delayAfter": 0,
-                "windowMs": 60000
-            },
             "timeout": 5000
         }
     },
     "broadcasts": {
+        "active": true,
         "broadcastInterval": 5000,
         "broadcastLimit": 20,
         "parallelLimit": 20,
-        "releaseLimit": 5,
-        "relayLimit": 5
+        "releaseLimit": 25,
+        "relayLimit": 2
     },
     "transactions": {
-        "maxTxsPerQueue": 1000
+        "maxTransactionsPerQueue": 1000
     },
     "forging": {
         "force": false,
@@ -77,6 +75,9 @@
                 "127.0.0.1"
             ]
         }
+    },
+    "syncing": {
+        "active": false
     },
     "loading": {
         "verifyOnLoading": false,
@@ -90,11 +91,6 @@
             "key": "./ssl/lisk.key",
             "cert": "./ssl/lisk.crt"
         }
-    },
-    "dapp": {
-        "masterrequired": false,
-        "masterpassword": "notRequired",
-        "autoexec": []
     },
     "nethash": "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"
 }
