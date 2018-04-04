@@ -30,14 +30,16 @@ JQ="$LISK_HOME/bin/jq"
 # Reads in required variables if configured by the user.
 parseOption() {
 	OPTIND=1
-	while getopts ":s:b:n:h:" OPT; do
+	while getopts ":s:b:n:h:z:d:k:" OPT; do
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;
 			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
+			 z) LISK_DOWNLOAD_LOCATION="$OPTARG" ;;
 			 d) DOWNLOAD_URL="$OPTARG" ;; # Download installLisk.sh from elsewhere
+			 k) master_password="$OPTARG" ;;
 		 esac
 	 done
 }
@@ -81,20 +83,27 @@ downloadLisk() {
 # Executes the migration of the source installation
 # and deploys the target installation, minimizing downtime.
 migrateLisk() {
-	bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -c "$BRIDGE_HOME/new_config.json" -0 no
+	if [ "$LISK_DOWNLOAD_LOCATION" ] ; then
+		echo bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -c "$BRIDGE_HOME/new_config.json" -0 no -z "$LISK_DOWNLOAD_LOCATION"
+		bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -c "$BRIDGE_HOME/new_config.json" -0 no -z "$LISK_DOWNLOAD_LOCATION"
+	else
+		bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -c "$BRIDGE_HOME/new_config.json" -0 no
+	fi
 }
 
 # Migrates the secrets in config.json to an encrypted format,
 # prompting user for a master password.
 passphraseMigration() {
-	echo -e "This next step will migrate the secrets in config.json to an encrypted format\nYou will be prompted for a master password\n"
-	read -r -p "$(echo -e "Press Enter to continue\n\b")"
-	read -r -p "$(echo -e "Please enter the master password\n\b")" master_password
-	read -r -p "$(echo -e "Please enter the master password again\n\b")" master_password2
+	if [ !$master_password ]; then
+		echo -e "This next step will migrate the secrets in config.json to an encrypted format\nYou will be prompted for a master password\n"
+		read -r -p "$(echo -e "Press Enter to continue\n\b")"
+		read -r -p "$(echo -e "Please enter the master password\n\b")" master_password
+		read -r -p "$(echo -e "Please enter the master password again\n\b")" master_password2
 
-	if [[ "$master_password" != "$master_password2" ]]; then
-		echo "Passwords don't match. Exiting..."
-		exit 1
+		if [[ "$master_password" != "$master_password2" ]]; then
+			echo "Passwords don't match. Exiting..."
+			exit 1
+		fi
 	fi
 
 	"$JQ" ".forging.defaultKey += \"$master_password\"" "$LISK_CONFIG" > new_config.json
