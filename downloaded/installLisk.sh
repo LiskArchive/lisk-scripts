@@ -405,7 +405,6 @@ parse_option() {
 			 0) SYNC="$OPTARG" ;;
 			 s) ;;
 		 esac
-		 echo $OPTARG;
 	 done
 
  if [ "$SYNC" ]; then
