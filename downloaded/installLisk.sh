@@ -188,10 +188,20 @@ ntp_checks() {
 	fi # End NTP Checks
 }
 
+download_custom_lisk() {
+	LISK_VERSION=$(echo $LISK_DOWNLOAD_LOCATION | sed 's/^.*lisk-\(.*.tar.gz\)/\1/')
+	LISK_DIR=$(echo "$LISK_VERSION" | sed 's/.tar.gz//')
+	echo -e "\nDownloading Lisk binary - $LISK_DOWNLOAD_LOCATION"
+	curl --progress-bar -o "$LISK_VERSION" "$LISK_DOWNLOAD_LOCATION"
+}
+
 download_lisk() {
 	LISK_VERSION=lisk-$UNAME.tar.gz
-
 	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
+	if [ $LISK_DOWNLOAD_LOCATION ] ; then
+		download_custom_lisk
+		return
+	fi
 
 	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256 &> /dev/null
 
@@ -383,16 +393,19 @@ usage() {
 
 parse_option() {
 	OPTIND=2
-	while getopts :d:r:u:hn0: OPT; do
+	while getopts :d:r:c:s:z:u:hn0: OPT; do
 		 case "$OPT" in
 			 d) LISK_LOCATION="$OPTARG" ;;
 			 r) RELEASE="$OPTARG" ;;
+			 c) CONFIG_PATH="$OPTARG" ;;
+			 z) LISK_DOWNLOAD_LOCATION="$OPTARG" ;;
 			 n) INSTALL_NTP=1 ;;
 			 h) REBUILD=true ;;
 			 u) URL="$OPTARG" ;;
 			 0) SYNC="$OPTARG" ;;
-			 c) CONFIG_PATH="$OPTARG" ;;
+			 s) ;;
 		 esac
+		 echo $OPTARG;
 	 done
 
  if [ "$SYNC" ]; then
