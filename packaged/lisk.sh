@@ -86,6 +86,8 @@ network() {
 		NETWORK="test"
 	elif [ "$(grep "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511" "$LISK_CONFIG")" ];then
 		NETWORK="main"
+	elif [ "$(grep "ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c" "$LISK_CONFIG")" ];then
+		NETWORK="beta"
 	else
 		NETWORK="local"
 	fi
