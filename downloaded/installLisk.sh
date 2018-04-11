@@ -188,10 +188,20 @@ ntp_checks() {
 	fi # End NTP Checks
 }
 
+download_custom_lisk() {
+	LISK_VERSION=$(echo $LISK_DOWNLOAD_LOCATION | sed 's/^.*\(lisk-.*.tar.gz\)/\1/')
+	LISK_DIR=$(echo "$LISK_VERSION" | sed 's/.tar.gz//')
+	echo -e "\nDownloading Lisk binary - $LISK_DOWNLOAD_LOCATION"
+	curl --progress-bar -o "$LISK_VERSION" "$LISK_DOWNLOAD_LOCATION"
+}
+
 download_lisk() {
 	LISK_VERSION=lisk-$UNAME.tar.gz
-
 	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
+	if [ $LISK_DOWNLOAD_LOCATION ] ; then
+		download_custom_lisk
+		return
+	fi
 
 	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256 &> /dev/null
 
@@ -339,8 +349,13 @@ upgrade_lisk() {
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
 
-	echo -e "\nCopying config.json entries from previous installation"
-	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	if [[ "$CONFIG_PATH" ]]; then
+		echo -e "\nCopying $CONFIG_PATH to new installation"
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$CONFIG_PATH" -n "$LISK_INSTALL"/config.json
+	else
+		echo -e "\nCopying config.json entries from previous installation"
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	fi
 }
 
 log_rotate() {
@@ -364,7 +379,7 @@ EOF_lisk-logrotate" &> /dev/null
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
+	echo "Usage: $0 <install|upgrade> [-d <directory>] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] [-c <CONFIG>]"
 	echo "install         -- install Lisk"
 	echo "upgrade         -- upgrade Lisk"
 	echo " -d <DIRECTORY> -- install location"
@@ -373,18 +388,22 @@ usage() {
 	echo " -h             -- rebuild instead of copying database"
 	echo " -u <URL>       -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>    -- Forces sync from 0"
+	echo " -c <CONFIG>    -- config path to use (only used during upgrade)"
 }
 
 parse_option() {
 	OPTIND=2
-	while getopts :d:r:u:hn0: OPT; do
+	while getopts :d:r:c:s:z:u:hn0: OPT; do
 		 case "$OPT" in
 			 d) LISK_LOCATION="$OPTARG" ;;
 			 r) RELEASE="$OPTARG" ;;
+			 c) CONFIG_PATH="$OPTARG" ;;
+			 z) LISK_DOWNLOAD_LOCATION="$OPTARG" ;;
 			 n) INSTALL_NTP=1 ;;
 			 h) REBUILD=true ;;
 			 u) URL="$OPTARG" ;;
 			 0) SYNC="$OPTARG" ;;
+			 s) ;;
 		 esac
 	 done
 
