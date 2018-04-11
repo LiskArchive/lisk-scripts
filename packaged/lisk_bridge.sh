@@ -61,7 +61,6 @@ extractConfig() {
 	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
 
 	secrets=( $(jq -r '.forging.secret | .[]' "$LISK_CONFIG") )
-	echo $secrets
 
 	for i in $(seq 0 ${#secrets[@]}); do
 		secrets[$i]=$(echo "${secrets[$i]}" | tr -d '\n')
