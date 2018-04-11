@@ -17,14 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
+LISK_PATH=$( cd -P -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd -P )
 
-# We dont care about return code here
-# shellcheck disable=SC2155
-export PATH="$(pwd)/bin:$(pwd)/pgsql/bin:$PATH"
-# We dont care about return code here
-# shellcheck disable=SC2155
-export LD_LIBRARY_PATH="$(pwd)/pgsql/lib:$(pwd)/lib:$LD_LIBRARY_PATH"
-# We dont care about return code here
-# shellcheck disable=SC2155
-export PM2_HOME=$(pwd)/.pm2
+export PATH="$LISK_PATH/bin:$LISK_PATH/pgsql/bin:$PATH"
+export LD_LIBRARY_PATH="$LISK_PATH/pgsql/lib:$LISK_PATH/lib:$LD_LIBRARY_PATH"
+export PM2_HOME=$LISK_PATH/.pm2
