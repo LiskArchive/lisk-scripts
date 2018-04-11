@@ -29,12 +29,10 @@ LISK_HOME="$HOME/lisk-main"
 # Reads in required variables if configured by the user.
 parseOption() {
 	OPTIND=1
-	while getopts ":s:c:j:b:n:h:" OPT; do
+	while getopts ":s:c:b:n:h:" OPT; do
 		case "$OPT" in
-			 s) LISK_HOME="$OPTARG" ;
-			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
+			 s) LISK_HOME="$OPTARG" ;; # Where lisk is installed
              c) LISK_CONFIG="$OPTARG" ;; # Lisk config file path
-             j) JQ="$OPTARG" ;; # JQ library executable path
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
@@ -51,14 +49,10 @@ extractConfig() {
 	    LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
     fi
 
-    if [ -z "$JQ" ]; then
-        JQ="$LISK_HOME/bin/jq"
-    fi
-
 	export PORT
 	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
 
-	secrets=( $("$JQ" -r '.forging.secret | .[]' "$LISK_CONFIG") )
+	secrets=( $(jq -r '.forging.secret | .[]' "$LISK_CONFIG") )
 	echo $secrets
 
 	for i in $(seq 0 ${#secrets[@]}); do
@@ -102,8 +96,8 @@ passphraseMigration() {
 		exit 1
 	fi
 
-	"$JQ" ".forging.defaultKey += \"$master_password\"" "$LISK_CONFIG" > new_config.json
-	"$JQ" "del(.forging.secret)" new_config.json > new_config2.json
+	jq ".forging.defaultKey += \"$master_password\"" "$LISK_CONFIG" > new_config.json
+	jq "del(.forging.secret)" new_config.json > new_config2.json
 	mv new_config2.json new_config.json
 	for i in $(seq 0 ${#secrets[@]}); do
 		temp=$(echo "${secrets[$i]}" | tr -d '\n' | openssl enc -aes-256-cbc -k "$master_password" -nosalt | od -A n -t x1)
@@ -112,7 +106,7 @@ passphraseMigration() {
 		if [[ "${#secrets[$i]}" -eq 0 ]]; then
 			continue;
 		fi
-		"$JQ" '.forging.secret += [{ "encryptedSecret": "'"$temp"'"}]' new_config.json > new_config2.json
+		jq '.forging.secret += [{ "encryptedSecret": "'"$temp"'"}]' new_config.json > new_config2.json
 		mv new_config2.json new_config.json
 	done
 }
