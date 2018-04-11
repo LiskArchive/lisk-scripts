@@ -25,15 +25,16 @@ TARGET_HEIGHT="3513100"
 BRIDGE_HOME="$(pwd)"
 BRIDGE_NETWORK="main"
 LISK_HOME="$HOME/lisk-main"
-JQ="$LISK_HOME/bin/jq"
 
 # Reads in required variables if configured by the user.
 parseOption() {
 	OPTIND=1
-	while getopts ":s:b:n:h:z:d:k:" OPT; do
+	while getopts ":s:c:j:b:n:h:z:d:k:" OPT; do
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;
 			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
+             c) LISK_CONFIG="$OPTARG" ;; # Lisk config file path
+             j) JQ="$OPTARG" ;; # JQ library executable path
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
@@ -48,12 +49,21 @@ parseOption() {
 # for an automated cutover.
 extractConfig() {
 	PM2_CONFIG="$LISK_HOME/etc/pm2-lisk.json"
-	LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
-	LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
+	if [ -z "$LISK_CONFIG" ]; then
+	    LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
+	    LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
+    fi
+
+    if [ -z "$JQ" ]; then
+        JQ="$LISK_HOME/bin/jq"
+    fi
+
 	export PORT
 	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
 
-	readarray secrets < <("$JQ" -r '.forging.secret | .[]' "$LISK_CONFIG")
+	secrets=( $("$JQ" -r '.forging.secret | .[]' "$LISK_CONFIG") )
+	echo $secrets
+
 	for i in $(seq 0 ${#secrets[@]}); do
 		secrets[$i]=$(echo "${secrets[$i]}" | tr -d '\n')
 	done
