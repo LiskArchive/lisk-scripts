@@ -20,6 +20,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
+# shellcheck disable=SC1090
+. "$(pwd)/shared.sh"
+# shellcheck disable=SC1090
+. "$(pwd)/env.sh"
+
 # Declare working variables
 TARGET_HEIGHT="3513100"
 BRIDGE_HOME="$(pwd)"
