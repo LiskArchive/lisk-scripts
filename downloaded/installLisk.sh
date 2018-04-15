@@ -101,7 +101,7 @@ user_prompts() {
 
 	[ "$RELEASE" ] || read -r -p "Would you like to install the Main or Test Client? (Default $DEFAULT_RELEASE): " RELEASE
 	RELEASE=${RELEASE:-$DEFAULT_RELEASE}
-	if [[ ! "$RELEASE" == "main" && ! "$RELEASE" == "test" && ! "$RELEASE" == "dev" ]]; then
+	if [[ ! "$RELEASE" == "main" && ! "$RELEASE" == "test" && ! "$RELEASE" == "dev" && ! "$RELEASE" == "beta" ]]; then
 		echo "$RELEASE is not valid, please check and re-execute"
 		exit 2;
 	fi
@@ -397,8 +397,8 @@ parse_option() {
 	fi
 
 	if [ "$RELEASE" ]; then
-		if [[ "$RELEASE" != test && "$RELEASE" != "main" && "$RELEASE" != "dev" ]]; then
-			echo "-r <test|main|dev>"
+		if [[ "$RELEASE" != test && "$RELEASE" != "main" && "$RELEASE" != "dev" && "$RELEASE" != "beta" ]]; then
+			echo "-r <test|main|dev|beta>"
 			usage
 			exit 1
 		fi
