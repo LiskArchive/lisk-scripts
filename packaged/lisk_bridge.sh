@@ -95,7 +95,7 @@ migrateLisk() {
 # Migrates the secrets in config.json to an encrypted format,
 # prompting user for a master password.
 passphraseMigration() {
-	if [ !"$master_password" ]; then
+	if [ ! "$master_password" ]; then
 		echo -e "This next step will migrate the secrets in config.json to an encrypted format\\nYou will be prompted for a master password\\n"
 		read -r -p "$(echo -e "Press Enter to continue\\n\\b")"
 		read -r -p "$(echo -e "Please enter the master password\\n\\b")" master_password
