@@ -189,16 +189,16 @@ ntp_checks() {
 }
 
 download_custom_lisk() {
-	LISK_VERSION=$(echo $LISK_DOWNLOAD_LOCATION | sed 's/^.*\(lisk-.*.tar.gz\)/\1/')
-	LISK_DIR=$(echo "$LISK_VERSION" | sed 's/.tar.gz//')
-	echo -e "\nDownloading Lisk binary - $LISK_DOWNLOAD_LOCATION"
+	LISK_VERSION="${LISK_DOWNLOAD_LOCATION//^.*\(lisk-.*.tar.gz\)/\1/}"
+	LISK_DIR="${LISK_VERSION//.tar.gz//}"
+	echo -e "\\nDownloading Lisk binary - $LISK_DOWNLOAD_LOCATION"
 	curl --progress-bar -o "$LISK_VERSION" "$LISK_DOWNLOAD_LOCATION"
 }
 
 download_lisk() {
 	LISK_VERSION=lisk-$UNAME.tar.gz
 	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
-	if [ $LISK_DOWNLOAD_LOCATION ] ; then
+	if [ "$LISK_DOWNLOAD_LOCATION" ] ; then
 		download_custom_lisk
 		return
 	fi
