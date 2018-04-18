@@ -86,6 +86,8 @@ network() {
 		NETWORK="test"
 	elif [ "$(grep "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511" "$LISK_CONFIG")" ];then
 		NETWORK="main"
+	elif [ "$(grep "ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c" "$LISK_CONFIG")" ];then
+		NETWORK="beta"
 	else
 		NETWORK="local"
 	fi
@@ -170,7 +172,7 @@ autostart_cron() {
 EOF
 	)
 
-	if ! printf "%s\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
+	if ! printf "%s\\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
 		echo "X Failed to update crontab."
 		return 1
 	else
@@ -340,9 +342,9 @@ tail_logs() {
 }
 
 help() {
-	echo -e "\nCommand Options for Lisk.sh"
-	echo -e "\nAll options may be passed [-p <PM2-config.json>]"
-	echo -e "\nstart_node                            Starts a Nodejs process for Lisk"
+	echo -e "\\nCommand Options for Lisk.sh"
+	echo -e "\\nAll options may be passed [-p <PM2-config.json>]"
+	echo -e "\\nstart_node                            Starts a Nodejs process for Lisk"
 	echo -e "start                                 Starts the Nodejs process and PostgreSQL Database for Lisk"
 	echo -e "stop_node                             Stops a Nodejs process for Lisk"
 	echo -e "stop                                  Stop the Nodejs process and PostgreSQL Database for Lisk"
@@ -458,4 +460,4 @@ case $1 in
 esac
 
 # Required to clean up colour characters that don't translate well from tee
-sed -i -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" "$SH_LOG_FILE"
+sed -i -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' "$SH_LOG_FILE"
