@@ -172,7 +172,7 @@ autostart_cron() {
 EOF
 	)
 
-	if ! printf "%s\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
+	if ! printf "%s\\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
 		echo "X Failed to update crontab."
 		return 1
 	else
@@ -342,9 +342,9 @@ tail_logs() {
 }
 
 help() {
-	echo -e "\nCommand Options for Lisk.sh"
-	echo -e "\nAll options may be passed [-p <PM2-config.json>]"
-	echo -e "\nstart_node                            Starts a Nodejs process for Lisk"
+	echo -e "\\nCommand Options for Lisk.sh"
+	echo -e "\\nAll options may be passed [-p <PM2-config.json>]"
+	echo -e "\\nstart_node                            Starts a Nodejs process for Lisk"
 	echo -e "start                                 Starts the Nodejs process and PostgreSQL Database for Lisk"
 	echo -e "stop_node                             Stops a Nodejs process for Lisk"
 	echo -e "stop                                  Stop the Nodejs process and PostgreSQL Database for Lisk"
