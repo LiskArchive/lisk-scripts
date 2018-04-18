@@ -378,6 +378,7 @@ usage() {
 parse_option() {
 	OPTIND=2
 	while getopts :d:r:u:hn0: OPT; do
+		 # shellcheck disable=SC2220
 		 case "$OPT" in
 			 d) LISK_LOCATION="$OPTARG" ;;
 			 r) RELEASE="$OPTARG" ;;

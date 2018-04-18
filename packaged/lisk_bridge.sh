@@ -31,6 +31,7 @@ JQ="$LISK_HOME/bin/jq"
 parseOption() {
 	OPTIND=1
 	while getopts ":s:b:n:h:" OPT; do
+		# shellcheck disable=SC2220
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;
 			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
