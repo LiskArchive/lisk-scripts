@@ -256,7 +256,7 @@ cleanup_installation() {
 	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
 
 	if [[ "$FRESH_INSTALL" == false ]]; then
-		echo -e "\Restoring old Lisk installation"
+		echo -e "Restoring old Lisk installation"
 		cp "$LISK_BACKUP" "$LISK_INSTALL"
 		bash "$LISK_INSTALL/lisk.sh" start
 	fi
