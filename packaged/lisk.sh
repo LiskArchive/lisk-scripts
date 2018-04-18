@@ -460,4 +460,4 @@ case $1 in
 esac
 
 # Required to clean up colour characters that don't translate well from tee
-sed -i -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" "$SH_LOG_FILE"
+sed -i -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' "$SH_LOG_FILE"
