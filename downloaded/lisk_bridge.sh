@@ -37,7 +37,7 @@ parseOption() {
 	while getopts ":s:c:b:n:h:" OPT; do
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;; # Where lisk is installed
-             c) LISK_CONFIG="$OPTARG" ;; # Lisk config file path
+			 c) LISK_CONFIG="$OPTARG" ;; # Lisk config file path
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
@@ -50,9 +50,9 @@ parseOption() {
 extractConfig() {
 	PM2_CONFIG="$LISK_HOME/etc/pm2-lisk.json"
 	if [ -z "$LISK_CONFIG" ]; then
-	    LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
-	    LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
-    fi
+		LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
+		LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
+	fi
 
 	export PORT
 	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
