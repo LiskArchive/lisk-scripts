@@ -31,6 +31,7 @@ JQ="$LISK_HOME/bin/jq"
 parseOption() {
 	OPTIND=1
 	while getopts ":s:b:n:h:" OPT; do
+		# shellcheck disable=SC2220
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;
 			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
@@ -52,7 +53,7 @@ extractConfig() {
 
 	readarray secrets < <("$JQ" -r '.forging.secret | .[]' "$LISK_CONFIG")
 	for i in $(seq 0 ${#secrets[@]}); do
-		secrets[$i]=$(echo "${secrets[$i]}" | tr -d '\n')
+		secrets[$i]=$(echo "${secrets[$i]}" | tr -d '\\n')
 	done
 }
 
@@ -82,10 +83,10 @@ migrateLisk() {
 # Migrates the secrets in config.json to an encrypted format,
 # prompting user for a master password.
 passphraseMigration() {
-	echo -e "This next step will migrate the secrets in config.json to an encrypted format\nYou will be prompted for a master password\n"
-	read -r -p "$(echo -e "Press Enter to continue\n\b")"
-	read -r -p "$(echo -e "Please enter the master password\n\b")" master_password
-	read -r -p "$(echo -e "Please enter the master password again\n\b")" master_password2
+	echo -e "This next step will migrate the secrets in config.json to an encrypted format\\nYou will be prompted for a master password\\n"
+	read -r -p "$(echo -e "Press Enter to continue\\n\\b")"
+	read -r -p "$(echo -e "Please enter the master password\\n\\b")" master_password
+	read -r -p "$(echo -e "Please enter the master password again\\n\\b")" master_password2
 
 	if [[ "$master_password" != "$master_password2" ]]; then
 		echo "Passwords don't match. Exiting..."
@@ -96,9 +97,9 @@ passphraseMigration() {
 	"$JQ" "del(.forging.secret)" new_config.json > new_config2.json
 	mv new_config2.json new_config.json
 	for i in $(seq 0 ${#secrets[@]}); do
-		temp=$(echo "${secrets[$i]}" | tr -d '\n' | openssl enc -aes-256-cbc -k "$master_password" -nosalt | od -A n -t x1)
+		temp=$(echo "${secrets[$i]}" | tr -d '\\n' | openssl enc -aes-256-cbc -k "$master_password" -nosalt | od -A n -t x1)
 		temp=${temp// /}
-		temp=$(echo "$temp" | tr -d '\n')
+		temp=$(echo "$temp" | tr -d '\\n')
 		if [[ "${#secrets[$i]}" -eq 0 ]]; then
 			continue;
 		fi
