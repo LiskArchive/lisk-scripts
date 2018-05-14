@@ -174,7 +174,7 @@ echo -e "\\n$(now) Beginning snapshot verification process"
 bash lisk.sh start -p "$PM2_CONFIG"
 
 MINUTES=0
-until tail -n10 "$LOG_LOCATION" | (grep -q "Snapshot finished"); do
+until (grep -q "Snapshot finished" "$LOG_LOCATION"); do
 	sleep 60
 
 	if [ "$( stat --format=%Y "$LOG_LOCATION" )" -le $(( $(date +%s) - ( STALL_THRESHOLD_CURRENT * 60 ) )) ]; then
