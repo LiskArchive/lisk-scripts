@@ -192,11 +192,12 @@ download_lisk() {
 	if [[ "$LOCAL_TAR" ]]; then
 		echo -e "\\nUsing local binary $LOCAL_TAR"
 		LISK_VERSION="$LOCAL_TAR"
-		LISK_DIR=( $(tar -tf "$LISK_VERSION" | cut -d '/' -f 1 | sort -u) )
-		if [[ ${#LISK_DIR[@]} != 1 ]]; then
+		readarray LISK_DIR_A < <(tar -tf "$LISK_VERSION" | cut -d '/' -f 1 | sort -u | tr -d '\n')
+		if [[ ${#LISK_DIR_A[@]} != 1 ]]; then
 			echo -e "\\nMalformed binary, aborting..."
 			exit 1
 		fi
+		LISK_DIR="${LISK_DIR_A[0]}"
 		return
 	fi
 
@@ -228,7 +229,7 @@ download_lisk() {
 }
 
 install_lisk() {
-	echo -e '\\nExtracting Lisk binaries to '"$LISK_INSTALL"
+	echo -e '\nExtracting Lisk binaries to '"$LISK_INSTALL"
 
 	tar -xzf "$LISK_VERSION" -C "$LISK_LOCATION"
 
