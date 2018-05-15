@@ -189,6 +189,17 @@ ntp_checks() {
 }
 
 download_lisk() {
+	if [[ "$LOCAL_TAR" ]]; then
+		echo -e "\\nUsing local binary $LOCAL_TAR"
+		LISK_VERSION="$LOCAL_TAR"
+		LISK_DIR=( $(tar -tf "$LISK_VERSION" | cut -d '/' -f 1 | sort -u) )
+		if [[ ${#LISK_DIR[@]} != 1 ]]; then
+			echo -e "\\nMalformed binary, aborting..."
+			exit 1
+		fi
+		return
+	fi
+
 	LISK_VERSION=lisk-$UNAME.tar.gz
 
 	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
@@ -223,8 +234,11 @@ install_lisk() {
 
 	mv "$LISK_LOCATION/$LISK_DIR" "$LISK_INSTALL"
 
-	echo -e "\\nCleaning up downloaded files"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	# if user is specifying a binary, we probably don't want to delete it
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nCleaning up downloaded files"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 }
 
 configure_lisk() {
@@ -251,9 +265,11 @@ cleanup_installation() {
 
 	cd ../ || exit 2
 
-	echo -e "\\nRemoving Lisk directory and installation files"
-	rm -rf "$LISK_INSTALL"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nRemoving Lisk directory and installation files"
+		rm -rf "$LISK_INSTALL"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 
 	if [[ "$FRESH_INSTALL" == false ]]; then
 		echo -e "Restoring old Lisk installation"
@@ -377,10 +393,11 @@ usage() {
 
 parse_option() {
 	OPTIND=2
-	while getopts :d:r:u:hn0: OPT; do
+	while getopts :d:f:r:u:hn0: OPT; do
 		 # shellcheck disable=SC2220
 		 case "$OPT" in
 			 d) LISK_LOCATION="$OPTARG" ;;
+			 f) LOCAL_TAR="$OPTARG" ;;
 			 r) RELEASE="$OPTARG" ;;
 			 n) INSTALL_NTP=1 ;;
 			 h) REBUILD=true ;;
