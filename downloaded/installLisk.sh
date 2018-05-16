@@ -306,7 +306,6 @@ case "$1" in
 	download_lisk
 	install_lisk
 	configure_lisk
-	log_rotate
 	start_lisk
 	;;
 "upgrade")
