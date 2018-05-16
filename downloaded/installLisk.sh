@@ -39,6 +39,10 @@ if [ "$USER" == "root" ]; then
 fi
 
 prereq_checks() {
+	if [[ $- != *i* ]]; then
+		echo -e "$0 is not running in interactive mode. Skipping prerequisite check\\n"
+		return
+	fi
 	echo -e "Checking prerequisites:"
 
 	if [ -x "$(command -v curl)" ]; then
@@ -78,6 +82,15 @@ elif [[ -f ~/.bash_profile && ! "$(grep "en_US.UTF-8" ~/.bash_profile)" ]]; then
 fi
 
 user_prompts() {
+	if [[ $- != *i* && ! $RELEASE ]]; then
+		echo "Release must be specified in non-interactive mode. Aborting..."
+		exit 2;
+	else
+		LISK_LOCATION=${LISK_LOCATION:-$DEFAULT_LISK_LOCATION}
+		SYNC=${SYNC:-$DEFAULT_SYNC}
+		LISK_INSTALL="$LISK_LOCATION"'/lisk-'"$RELEASE"
+		return
+	fi
 	[ "$LISK_LOCATION" ] || read -r -p "Where do you want to install Lisk to? (Default $DEFAULT_LISK_LOCATION): " LISK_LOCATION
 	LISK_LOCATION=${LISK_LOCATION:-$DEFAULT_LISK_LOCATION}
 	if [[ ! -r "$LISK_LOCATION" ]]; then
