@@ -105,12 +105,7 @@ download_lisk() {
 	if [[ "$LOCAL_TAR" ]]; then
 		echo -e "\\nUsing local binary $LOCAL_TAR"
 		LISK_VERSION="$LOCAL_TAR"
-		readarray LISK_DIR_A < <(tar -tf "$LISK_VERSION" | cut -d '/' -f 1 | sort -u | tr -d '\n')
-		if [[ ${#LISK_DIR_A[@]} != 1 ]]; then
-			echo -e "\\nMalformed binary, aborting..."
-			exit 1
-		fi
-		LISK_DIR="${LISK_DIR_A[0]}"
+		LISK_DIR="$(tar -tf $LISK_VERSION | head -n 1 | cut -d '/' -f 1)"
 		return
 	fi
 
