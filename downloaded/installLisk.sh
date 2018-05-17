@@ -105,7 +105,7 @@ download_lisk() {
 	if [[ "$LOCAL_TAR" ]]; then
 		echo -e "\\nUsing local binary $LOCAL_TAR"
 		LISK_VERSION="$LOCAL_TAR"
-		LISK_DIR="$(tar -tf $LISK_VERSION | head -n 1 | cut -d '/' -f 1)"
+		LISK_DIR="$(tar -tf "$LISK_VERSION" | head -n 1 | cut -d '/' -f 1)"
 		return
 	fi
 
