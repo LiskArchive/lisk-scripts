@@ -70,7 +70,7 @@ downloadLisk() {
 # Executes the migration of the source installation
 # and deploys the target installation, minimizing downtime.
 migrateLisk() {
-	bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -0 no
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -0 no
 }
 
 # Sets up initial configuration and first call to the application
