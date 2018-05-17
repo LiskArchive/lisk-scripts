@@ -19,6 +19,9 @@
 
 # shellcheck disable=SC2129
 
+set -eo pipefail
+IFS=$'\n\t'
+
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 
 if [ ! -f "$(pwd)/app.js" ]; then
