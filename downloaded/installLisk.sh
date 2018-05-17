@@ -42,30 +42,30 @@ prereq_checks() {
 	echo -e "Checking prerequisites:"
 
 	if [ -x "$(command -v curl)" ]; then
-		echo -e "curl is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
 			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
 	if [ -x "$(command -v tar)" ]; then
-		echo -e "Tar is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
 			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
 	if [ -x "$(command -v wget)" ]; then
-		echo -e "Wget is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "Wget is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\nWget is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\nWget is not installed.\\t\\t\\t\\t\\tFailed"
 		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
-	echo -e "$(tput setaf 2)All preqrequisites passed!$(tput sgr0)"
+	echo -e "All preqrequisites passed!"
 }
 
 # Adding LC_ALL LANG and LANGUAGE to user profile
