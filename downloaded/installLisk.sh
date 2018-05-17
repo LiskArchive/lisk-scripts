@@ -148,7 +148,7 @@ install_lisk() {
 
 	mv "$LISK_LOCATION/$LISK_DIR" "$LISK_INSTALL"
 
-	# if user is specifying a binary, we probably don't want to delete it
+	# if user is specifying a tarball, we probably don't want to delete it
 	if [[ ! $LOCAL_TAR ]]; then
 		echo -e "\\nCleaning up downloaded files"
 		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
