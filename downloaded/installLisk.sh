@@ -65,20 +65,6 @@ prereq_checks() {
 		exit 2
 	fi
 
-	if sudo -n true 2>/dev/null; then
-		echo -e "Sudo is installed and authenticated.\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
-	else
-		echo -e "Sudo is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
-		echo "Please provide sudo password for validation"
-		if sudo -Sv -p ''; then
-			echo -e "Sudo authenticated.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
-		else
-			echo -e "Unable to authenticate Sudo.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
-			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
-			exit 2
-		fi
-	fi
-
 	echo -e "$(tput setaf 2)All preqrequisites passed!$(tput sgr0)"
 }
 
@@ -113,79 +99,6 @@ user_prompts() {
 		exit 2;
 	fi
 	LISK_INSTALL="$LISK_LOCATION"'/lisk-'"$RELEASE"
-}
-
-ntp_checks() {
-	# Install NTP or Chrony for Time Management - Physical Machines only
-	if [[ "$(uname)" == "Linux" ]]; then
-		if [[ -f "/etc/debian_version" &&  ! -f "/proc/user_beancounters" ]]; then
-			if sudo pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				echo "X NTP is not running"
-				[ "$INSTALL_NTP" ] || read -r -n 1 -p "Would like to install NTP? (y/n): " REPLY
-				if [[ "$INSTALL_NTP" || "$REPLY" =~ ^[Yy]$ ]]; then
-					echo -e "\\nInstalling NTP, please provide sudo password.\\n"
-					sudo apt-get install ntp ntpdate -yyq
-					sudo service ntp stop
-					sudo ntpdate pool.ntp.org
-					sudo service ntp start
-					if sudo pgrep -x "ntpd" > /dev/null; then
-						echo "√ NTP is running"
-					else
-						echo -e "\\nLisk requires NTP running on Debian based systems. Please check /etc/ntp.conf and correct any issues."
-						exit 0
-					fi
-				else
-					echo -e "\\nLisk requires NTP on Debian based systems, exiting."
-					exit 0
-				fi
-			fi # End Debian Checks
-		elif [[ -f "/etc/redhat-RELEASE" &&  ! -f "/proc/user_beancounters" ]]; then
-			if sudo pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				if sudo pgrep -x "chronyd" > /dev/null; then
-					echo "√ Chrony is running"
-				else
-					echo "X NTP and Chrony are not running"
-					[ "$INSTALL_NTP" ] || read -r -n 1 -p "Would like to install NTP? (y/n): " REPLY
-					if [[ "$INSTALL_NTP" || "$REPLY" =~ ^[Yy]$ ]]; then
-						echo -e "\\nInstalling NTP, please provide sudo password.\\n"
-						sudo yum -yq install ntp ntpdate ntp-doc
-						sudo chkconfig ntpd on
-						sudo service ntpd stop
-						sudo ntpdate pool.ntp.org
-						sudo service ntpd start
-						if pgrep -x "ntpd" > /dev/null; then
-							echo "√ NTP is running"
-							else
-							echo -e "\\nLisk requires NTP running on Debian based systems. Please check /etc/ntp.conf and correct any issues."
-							exit 0
-						fi
-					else
-						echo -e "\\nLisk requires NTP or Chrony on RHEL based systems, exiting."
-						exit 0
-					fi
-				fi
-			fi # End Redhat Checks
-		elif [[ -f "/proc/user_beancounters" ]]; then
-			echo "_ Running OpenVZ VM, NTP and Chrony are not required"
-		fi
-	elif [[ "$(uname)" == "Darwin" ]]; then
-		if pgrep -x "ntpd" > /dev/null; then
-			echo "√ NTP is running"
-		else
-			sudo launchctl load /System/Library/LaunchDaemons/org.ntp.ntpd.plist
-			sleep 1
-			if pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				echo -e "\\nNTP did not start, Please verify its configured on your system"
-				exit 0
-			fi
-		fi  # End Darwin Checks
-	fi # End NTP Checks
 }
 
 download_lisk() {
@@ -360,33 +273,12 @@ upgrade_lisk() {
 	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
 }
 
-log_rotate() {
-	if [[ "$(uname)" == "Linux" ]]; then
-		echo -e "\\nConfiguring Logrotate for Lisk"
-		sudo bash -c "cat > /etc/logrotate.d/lisk-$RELEASE-log << EOF_lisk-logrotate
-		$LISK_LOCATION/lisk-$RELEASE/logs/*.log {
-		create 666 $USER $USER
-		weekly
-		size=100M
-		dateext
-		copytruncate
-		missingok
-		rotate 2
-		compress
-		delaycompress
-		notifempty
-		}
-EOF_lisk-logrotate" &> /dev/null
-		fi
-}
-
 usage() {
 	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
 	echo "install         -- install Lisk"
 	echo "upgrade         -- upgrade Lisk"
 	echo " -d <DIRECTORY> -- install location"
 	echo " -r <RELEASE>   -- choose main or test"
-	echo " -n             -- install ntp if not installed"
 	echo " -h             -- rebuild instead of copying database"
 	echo " -u <URL>       -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>    -- Forces sync from 0"
@@ -394,13 +286,12 @@ usage() {
 
 parse_option() {
 	OPTIND=2
-	while getopts :d:f:r:u:hn0: OPT; do
+	while getopts :d:f:r:u:h0: OPT; do
 		 # shellcheck disable=SC2220
 		 case "$OPT" in
 			 d) LISK_LOCATION="$OPTARG" ;;
 			 f) LOCAL_TAR="$OPTARG" ;;
 			 r) RELEASE="$OPTARG" ;;
-			 n) INSTALL_NTP=1 ;;
 			 h) REBUILD=true ;;
 			 u) URL="$OPTARG" ;;
 			 0) SYNC="$OPTARG" ;;
@@ -430,11 +321,9 @@ case "$1" in
 	parse_option "$@"
 	prereq_checks
 	user_prompts
-	ntp_checks
 	download_lisk
 	install_lisk
 	configure_lisk
-	log_rotate
 	start_lisk
 	;;
 "upgrade")
