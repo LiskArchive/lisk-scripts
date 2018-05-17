@@ -25,7 +25,6 @@ TARGET_HEIGHT="3513100"
 BRIDGE_HOME="$(pwd)"
 BRIDGE_NETWORK="main"
 LISK_HOME="$HOME/lisk-main"
-JQ="$LISK_HOME/bin/jq"
 
 # Reads in required variables if configured by the user.
 parseOption() {
@@ -33,8 +32,7 @@ parseOption() {
 	while getopts ":s:b:n:h:" OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
-			 s) LISK_HOME="$OPTARG" ;
-			    JQ="$LISK_HOME/bin/jq" ;; # Where lisk is installed
+			 s) LISK_HOME="$OPTARG" ;;
 			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
@@ -50,11 +48,6 @@ extractConfig() {
 	LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
 	export PORT
 	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
-
-	readarray secrets < <("$JQ" -r '.forging.secret | .[]' "$LISK_CONFIG")
-	for i in $(seq 0 ${#secrets[@]}); do
-		secrets[$i]=$(echo "${secrets[$i]}" | tr -d '\\n')
-	done
 }
 
 # Queries the `/api/loader/status/sync` endpoint
@@ -77,35 +70,7 @@ downloadLisk() {
 # Executes the migration of the source installation
 # and deploys the target installation, minimizing downtime.
 migrateLisk() {
-	bash "$(pwd)/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -c "$BRIDGE_HOME/new_config.json" -0 no
-}
-
-# Migrates the secrets in config.json to an encrypted format,
-# prompting user for a master password.
-passphraseMigration() {
-	echo -e "This next step will migrate the secrets in config.json to an encrypted format\\nYou will be prompted for a master password\\n"
-	read -r -p "$(echo -e "Press Enter to continue\\n\\b")"
-	read -r -p "$(echo -e "Please enter the master password\\n\\b")" master_password
-	read -r -p "$(echo -e "Please enter the master password again\\n\\b")" master_password2
-
-	if [[ "$master_password" != "$master_password2" ]]; then
-		echo "Passwords don't match. Exiting..."
-		exit 1
-	fi
-
-	"$JQ" ".forging.defaultKey += \"$master_password\"" "$LISK_CONFIG" > new_config.json
-	"$JQ" "del(.forging.secret)" new_config.json > new_config2.json
-	mv new_config2.json new_config.json
-	for i in $(seq 0 ${#secrets[@]}); do
-		temp=$(echo "${secrets[$i]}" | tr -d '\\n' | openssl enc -aes-256-cbc -k "$master_password" -nosalt | od -A n -t x1)
-		temp=${temp// /}
-		temp=$(echo "$temp" | tr -d '\\n')
-		if [[ "${#secrets[$i]}" -eq 0 ]]; then
-			continue;
-		fi
-		"$JQ" '.forging.secret += [{ "encryptedSecret": "'"$temp"'"}]' new_config.json > new_config2.json
-		mv new_config2.json new_config.json
-	done
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -0 no
 }
 
 # Sets up initial configuration and first call to the application
@@ -125,7 +90,6 @@ done
 cd "$LISK_HOME" || exit 2
 terminateLisk
 cd "$BRIDGE_HOME"  || exit 2
-passphraseMigration
 downloadLisk
 migrateLisk
 
