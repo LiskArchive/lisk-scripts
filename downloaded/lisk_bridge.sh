@@ -39,16 +39,17 @@ parseOption() {
 	if [[ ! $LISK_HOME ]]; then
 		LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
 	fi
+	JQ="$LISK_HOME/bin/jq"
 }
 
 # Harvests the configuation data from the source installation
 # for an automated cutover.
 extractConfig() {
 	PM2_CONFIG="$LISK_HOME/etc/pm2-lisk.json"
-	LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
+	LISK_CONFIG="$($JQ -r '.apps[].args' "$PM2_CONFIG" | cut -d ' ' -f 2)" >> /dev/null
 	LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
 	export PORT
-	PORT="$(grep "port" "$LISK_CONFIG" | head -1 | cut -d':' -f 2 | cut -d',' -f 1 | tr -d '[:space:]')"
+	PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
 }
 
 # Queries the `/api/loader/status/sync` endpoint
