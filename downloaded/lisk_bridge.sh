@@ -24,20 +24,21 @@
 TARGET_HEIGHT="3513100"
 BRIDGE_HOME="$(pwd)"
 BRIDGE_NETWORK="main"
-LISK_HOME="$HOME/lisk-main"
 
 # Reads in required variables if configured by the user.
 parseOption() {
 	OPTIND=1
-	while getopts ":s:b:n:h:" OPT; do
+	while getopts ":s:n:h:" OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
 			 s) LISK_HOME="$OPTARG" ;;
-			 b) BRIDGE_HOME="$OPTARG" ;; # Where the bridge is located
 			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
 		 esac
 	 done
+	if [[ ! $LISK_HOME ]]; then
+		LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
+	fi
 }
 
 # Harvests the configuation data from the source installation
@@ -70,7 +71,7 @@ downloadLisk() {
 # Executes the migration of the source installation
 # and deploys the target installation, minimizing downtime.
 migrateLisk() {
-	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -s "$LISK_HOME" -d "$BRIDGE_HOME" -0 no
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$LISK_HOME" -0 no
 }
 
 # Sets up initial configuration and first call to the application
