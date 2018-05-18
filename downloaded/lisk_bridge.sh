@@ -31,11 +31,11 @@ parseOption() {
 	while getopts ":s:n:h:" OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
-			 s) LISK_HOME="$OPTARG" ;;
-			 n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
-			 h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
-		 esac
-	 done
+			s) LISK_HOME="$OPTARG" ;;
+			n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
+			h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
+		esac
+	done
 	if [[ ! $LISK_HOME ]]; then
 		LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
 	fi
