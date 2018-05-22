@@ -21,7 +21,6 @@
 ######################################################################
 
 # Declare working variables
-TARGET_HEIGHT="3513100"
 BRIDGE_HOME="$(pwd)"
 BRIDGE_NETWORK="main"
 
@@ -34,8 +33,16 @@ parseOption() {
 			s) LISK_HOME="$OPTARG" ;;
 			n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 			h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
+			:) echo 'Missing argument for -'"$OPTARG" >&2;
+			   SHOW_USAGE=1;;
+			*) echo 'Unimplemnted option: -'"$OPTARG">&2;
+			   SHOW_USAGE=1 ;;
 		esac
 	done
+	if [[ $SHOW_USAGE ]]; then
+		usage
+		exit 1;
+	fi
 	if [[ ! $LISK_HOME ]]; then
 		LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
 	fi
@@ -45,9 +52,7 @@ parseOption() {
 # Harvests the configuation data from the source installation
 # for an automated cutover.
 extractConfig() {
-	PM2_CONFIG="$LISK_HOME/etc/pm2-lisk.json"
-	LISK_CONFIG="$($JQ -r '.apps[].args' "$PM2_CONFIG" | cut -d ' ' -f 2)" >> /dev/null
-	LISK_CONFIG="$LISK_HOME/$LISK_CONFIG"
+	LISK_CONFIG="$LISK_HOME/config.json"
 	export PORT
 	PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
 }
@@ -55,13 +60,7 @@ extractConfig() {
 # Queries the `/api/loader/status/sync` endpoint
 # and extracts the height for evaluation.
 blockMonitor() {
-	BLOCK_HEIGHT="$(curl -s http://localhost:"$PORT"/api/loader/status/sync | cut -d':' -f 5 | cut -d',' -f 1)"
-}
-
-# Terminates the lisk client at the assigned blocks
-# preparing the installation for a cutover.
-terminateLisk() {
-	bash "$LISK_HOME/lisk.sh" stop
+	BLOCK_HEIGHT="$(curl -s http://localhost:"$PORT"/api/loader/status/sync | $JQ -r '.height')"
 }
 
 # Downloads the new Lisk client.
@@ -73,6 +72,14 @@ downloadLisk() {
 # and deploys the target installation, minimizing downtime.
 migrateLisk() {
 	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$LISK_HOME" -0 no
+}
+
+usage() {
+	echo "Usage: $0 <-h <BLOCKHEIGHT>> [-s <DIRECTORY>] [-n <NETWORK>] "
+	echo '-h <BLOCKHEIGHT> -- specify blockheight at which bridging will be initiated'
+	echo '-s <DIRECTORY>   -- Lisk home directory'
+	echo '-n <NETWORK>     -- choose main or test'
+	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
 }
 
 # Sets up initial configuration and first call to the application
@@ -90,7 +97,7 @@ while [[ "$BLOCK_HEIGHT" -lt "$TARGET_HEIGHT" ]] ; do
 done
 
 cd "$LISK_HOME" || exit 2
-terminateLisk
+bash "$LISK_HOME/lisk.sh" stop
 cd "$BRIDGE_HOME"  || exit 2
 downloadLisk
 migrateLisk
