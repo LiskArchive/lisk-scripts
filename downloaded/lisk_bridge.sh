@@ -55,7 +55,6 @@ fi
 JQ="$LISK_HOME/bin/jq"
 
 LISK_CONFIG="$LISK_HOME/config.json"
-export PORT
 PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
 
 while true; do
