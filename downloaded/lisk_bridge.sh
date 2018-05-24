@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # LiskHQ/lisk-scripts/lisk_bridge.sh
-# Copyright (C) 2017 Lisk Foundation
+# Copyright (C) 2018 Lisk Foundation
 #
 # Connects source and target versions of Lisk in order to migrate
 # gracefully between protocol changes.
@@ -20,86 +20,60 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
+set -eo pipefail
+
 # Declare working variables
-BRIDGE_HOME="$(pwd)"
 BRIDGE_NETWORK="main"
 
-# Reads in required variables if configured by the user.
-parseOption() {
-	OPTIND=1
-	while getopts ":s:n:h:" OPT; do
-		# shellcheck disable=SC2220
-		case "$OPT" in
-			s) LISK_HOME="$OPTARG" ;;
-			n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
-			h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
-			:) echo 'Missing argument for -'"$OPTARG" >&2;
-			   SHOW_USAGE=1;;
-			*) echo 'Unimplemnted option: -'"$OPTARG">&2;
-			   SHOW_USAGE=1 ;;
-		esac
-	done
-	if [[ $SHOW_USAGE ]]; then
-		usage
-		exit 1;
-	fi
-	if [[ ! $LISK_HOME ]]; then
-		LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
-	fi
-	JQ="$LISK_HOME/bin/jq"
-}
-
-# Harvests the configuation data from the source installation
-# for an automated cutover.
-extractConfig() {
-	LISK_CONFIG="$LISK_HOME/config.json"
-	export PORT
-	PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
-}
-
-# Queries the `/api/loader/status/sync` endpoint
-# and extracts the height for evaluation.
-blockMonitor() {
-	BLOCK_HEIGHT="$(curl -s http://localhost:"$PORT"/api/loader/status/sync | $JQ -r '.height')"
-}
-
-# Downloads the new Lisk client.
-downloadLisk() {
-	wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
-}
-
-# Executes the migration of the source installation
-# and deploys the target installation, minimizing downtime.
-migrateLisk() {
-	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$LISK_HOME" -0 no
-}
-
-usage() {
+OPTIND=1
+while getopts ":s:n:h:" OPT; do
+	case "$OPT" in
+		s) LISK_HOME="$OPTARG" ;;
+		n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
+		h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
+		:) echo 'Missing argument for -'"$OPTARG" >&2;
+		   SHOW_USAGE=1;;
+		*) echo 'Unimplemented option: -'"$OPTARG">&2;
+		   SHOW_USAGE=1 ;;
+	esac
+done
+if [[ -z $TARGET_HEIGHT ]]; then
+	echo 'Error: -h <BLOCKHEIGHT> must be specified'>&2
+	SHOW_USAGE=1;
+fi
+if [[ $SHOW_USAGE ]]; then
 	echo "Usage: $0 <-h <BLOCKHEIGHT>> [-s <DIRECTORY>] [-n <NETWORK>] "
 	echo '-h <BLOCKHEIGHT> -- specify blockheight at which bridging will be initiated'
 	echo '-s <DIRECTORY>   -- Lisk home directory'
 	echo '-n <NETWORK>     -- choose main or test'
 	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
-}
+	exit 1;
+fi
+if [[ ! $LISK_HOME ]]; then
+	LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
+fi
+JQ="$LISK_HOME/bin/jq"
 
-# Sets up initial configuration and first call to the application
-# to establish baseline statistics.
-parseOption "$@"
-extractConfig
-blockMonitor
+LISK_CONFIG="$LISK_HOME/config.json"
+export PORT
+PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
 
-# Acts as the eventloop, keeping the process running
-# in order to monitor the node for upgrade.
-while [[ "$BLOCK_HEIGHT" -lt "$TARGET_HEIGHT" ]] ; do
-	blockMonitor
-	echo "$BLOCK_HEIGHT"
-	sleep 5
+while true; do
+	BLOCK_HEIGHT="$(curl -s http://localhost:"$PORT"/api/loader/status/sync | $JQ -r '.height' || echo -1 )"
+	if [[ "$BLOCK_HEIGHT" -eq -1 ]]; then
+		echo "Unable to get block height"
+	else
+		echo "$BLOCK_HEIGHT"
+	fi
+	[[ "$BLOCK_HEIGHT" -lt "$TARGET_HEIGHT" ]] || break
+	sleep 1
 done
 
-cd "$LISK_HOME" || exit 2
-bash "$LISK_HOME/lisk.sh" stop
-cd "$BRIDGE_HOME"  || exit 2
-downloadLisk
-migrateLisk
+if [[ "$BLOCK_HEIGHT" -gt "$TARGET_HEIGHT" ]]; then
+	echo "The block height ($BLOCK_HEIGHT) is above the cut off point. Please see migration guide for next steps"
+	exit 1;
+fi
 
-# All done!
+bash "$LISK_HOME/lisk.sh" stop
+wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
+bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no
