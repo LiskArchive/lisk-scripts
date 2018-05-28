@@ -26,9 +26,10 @@ set -eo pipefail
 BRIDGE_NETWORK="main"
 
 OPTIND=1
-while getopts ":s:n:h:" OPT; do
+while getopts ":s:f:n:h:" OPT; do
 	case "$OPT" in
 		s) LISK_HOME="$OPTARG" ;;
+		f) LOCAL_TAR="$OPTARG" ;;
 		n) BRIDGE_NETWORK="$OPTARG" ;; # Which network is being bridged
 		h) TARGET_HEIGHT="$OPTARG" ;; # What height to cut over at
 		:) echo 'Missing argument for -'"$OPTARG" >&2;
@@ -75,4 +76,7 @@ fi
 
 bash "$LISK_HOME/lisk.sh" stop
 wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
-bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no
+	if [[ $LOCAL_TAR ]]; then
+		SPECIFY_LOCAL_TAR="-f $LOCAL_TAR"
+	fi
+bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no "$SPECIFY_LOCAL_TAR"
