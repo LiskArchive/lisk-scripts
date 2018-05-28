@@ -76,7 +76,8 @@ fi
 
 bash "$LISK_HOME/lisk.sh" stop
 wget "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
-	if [[ $LOCAL_TAR ]]; then
-		SPECIFY_LOCAL_TAR="-f $LOCAL_TAR"
-	fi
-bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no "$SPECIFY_LOCAL_TAR"
+if [[ $LOCAL_TAR ]]; then
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -f "$LOCAL_TAR"
+else
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no
+fi
