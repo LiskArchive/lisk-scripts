@@ -38,8 +38,8 @@ fi
 
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
-PM2_APP="$(grep "name" "$PM2_CONFIG" | cut -d'"' -f4)" >> /dev/null
-LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
+PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
+LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
 LISK_LOGS="$(jq -r '.logFileName' "$LISK_CONFIG")"
 
 LOGS_DIR="$(pwd)/logs"
