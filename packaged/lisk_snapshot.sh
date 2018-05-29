@@ -31,15 +31,15 @@ cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 
 ### Variables Definition #############################################
 
-SNAPSHOT_CONFIG="$(pwd)/etc/snapshot.json"
-TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
-LOG_LOCATION="$(grep "logFileName" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
+SNAPSHOT_CONFIG="$PWD/etc/snapshot.json"
+TARGET_DB_NAME="$( jq .db.database "$SNAPSHOT_CONFIG" )"
+LOG_LOCATION="$( jq .logFileName "$SNAPSHOT_CONFIG" )"
 
 LISK_CONFIG="config.json"
-PM2_CONFIG="$(pwd)/etc/pm2-snapshot.json"
-SOURCE_DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
+PM2_CONFIG="$PWD/etc/pm2-snapshot.json"
+SOURCE_DB_NAME="$( jq .db.database "$LISK_CONFIG" )"
 
-BACKUP_LOCATION="$(pwd)/backups"
+BACKUP_LOCATION="$PWD/backups"
 
 DAYS_TO_KEEP="7"
 
@@ -52,7 +52,7 @@ PGSQL_VACUUM_DELAY="3"
 STALL_THRESHOLD_PREVIOUS="20"
 STALL_THRESHOLD_CURRENT="10"
 
-LOCK_LOCATION="$(pwd)/locks"
+LOCK_LOCATION="$PWD/locks"
 LOCK_FILE="$LOCK_LOCATION/snapshot.lock"
 
 ### Function(s) ######################################################
@@ -64,8 +64,8 @@ parse_option() {
 			t)
 				if [ -f "$OPTARG" ]; then
 					SNAPSHOT_CONFIG="$OPTARG"
-					TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
-					LOG_LOCATION="$(grep "logFileName" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
+					TARGET_DB_NAME="$( jq .db.database "$SNAPSHOT_CONFIG" )"
+					LOG_LOCATION="$( jq .logFileName "$SNAPSHOT_CONFIG" )"
 				else
 					echo "$(now) config.json for snapshot not found. Please verify the file exists and try again."
 					exit 1
@@ -74,7 +74,7 @@ parse_option() {
 			s)
 				if [ -f "$OPTARG" ]; then
 					LISK_CONFIG="$OPTARG"
-					SOURCE_DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
+					SOURCE_DB_NAME="$( jq .db.database "$LISK_CONFIG" )"
 				else
 					echo "$(now) config.json not found. Please verify the file exists and try again."
 					exit 1
