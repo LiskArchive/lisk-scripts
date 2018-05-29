@@ -81,16 +81,21 @@ blockheight() {
 }
 
 network() {
-	# shellcheck disable=SC2143
-	if [ "$(grep "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba" "$LISK_CONFIG" )" ];then
-		NETWORK="test"
-	elif [ "$(grep "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511" "$LISK_CONFIG")" ];then
-		NETWORK="main"
-	elif [ "$(grep "ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c" "$LISK_CONFIG")" ];then
-		NETWORK="beta"
-	else
-		NETWORK="local"
-	fi
+	NETHASH=$( jq -r .nethash "$LISK_CONFIG" )
+	case $NETHASH in
+		"ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511")
+			NETWORK="main"
+			;;
+		"da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba")
+			NETWORK="test"
+			;;
+		"ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c")
+			NETWORK="beta"
+			;;
+		*)
+			NETWORK="local"
+			;;
+	esac
 	echo -e 'Lisk configured for '"$NETWORK"' network\n' >> "$SH_LOG_FILE" 2>&1
 }
 
