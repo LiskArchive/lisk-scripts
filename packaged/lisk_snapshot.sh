@@ -188,9 +188,9 @@ until [[ ! $(pm2 info lisk.snapshot | grep status | awk '{print $4}') == "stoppe
 	MINUTES=$(( MINUTES + 1 ))
 	if (( MINUTES % PGSQL_VACUUM_DELAY == 0 )) 2> /dev/null; then
 		echo -e "\\n$(now) Executing vacuum on table 'mem_round' of database '$TARGET_DB_NAME'"
-		DBSIZE1=$(( $( ./pgsql/bin/psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
+		DBSIZE1=$(( $( psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
 		vacuumdb --analyze --full --table 'mem_round' "$TARGET_DB_NAME" &> /dev/null
-		DBSIZE2=$(( $( ./pgsql/bin/psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
+		DBSIZE2=$(( $( psql -d "$TARGET_DB_NAME" -t -c "select pg_database_size('$TARGET_DB_NAME');" | xargs ) / 1024 / 1024 ))
 		echo -e "$(now) Vacuum completed, database size: $DBSIZE1 MB => $DBSIZE2 MB"
 	fi
 done
