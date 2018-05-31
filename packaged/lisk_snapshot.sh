@@ -174,7 +174,7 @@ echo -e "\\n$(now) Beginning snapshot verification process"
 bash lisk.sh start -p "$PM2_CONFIG"
 
 MINUTES=0
-until [[ ! $(pm2 info lisk.snapshot | grep status | awk '{print $4}') == "stopped" ]];  do
+until [[ ! $(pm2 jlist | jq -rc '.[] | select(.name | contains("lisk.snapshot")) | .pm2_env.status' == "stopped" ]];  do
 	sleep 60
 
 	if [ "$( stat --format=%Y "$LOG_LOCATION" )" -le $(( $(date +%s) - ( STALL_THRESHOLD_CURRENT * 60 ) )) ]; then
