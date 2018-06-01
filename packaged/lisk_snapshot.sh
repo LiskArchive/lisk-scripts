@@ -24,9 +24,9 @@
 ### Init. Env. #######################################################
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
-# shellcheck disable=SC1090
+# shellcheck source=shared.sh
 . "$(pwd)/shared.sh"
-# shellcheck disable=SC1090
+# shellcheck source=env.sh
 . "$(pwd)/env.sh"
 
 ### Variables Definition #############################################
