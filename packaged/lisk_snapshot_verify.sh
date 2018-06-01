@@ -24,8 +24,10 @@ set -eo pipefail
 DB_NAME="lisk_verify"
 
 function clean_up {
+	RET_CODE=$?
 	dropdb $DB_NAME --if-exists
 	rm verify.json
+	exit $RET_CODE
 }
 
 trap clean_up EXIT
