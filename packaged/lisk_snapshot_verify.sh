@@ -22,9 +22,17 @@
 
 set -eo pipefail
 DB_NAME="lisk_verify"
+
+function clean_up {
+	dropdb $DB_NAME --if-exists
+	rm verify.json
+}
+
+trap clean_up EXIT
+
 if [ "$USER" == "root" ]; then
-        echo "Error: $0 should not be run be as root. Exiting."
-        exit 1
+	echo "Error: $0 should not be run be as root. Exiting."
+	exit 1
 fi
 
 if [[ ! $1 ]] ; then
@@ -36,7 +44,6 @@ else
 	DB_SNAPSHOT="$1"
 fi
 
-
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 # shellcheck source=shared.sh
 . "$PWD/shared.sh"
@@ -44,11 +51,9 @@ cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 . "$PWD/env.sh"
 
 if [ ! -f "$PWD/app.js" ]; then
-        echo "Error: Lisk installation was not found. Exiting."
-        exit 1
+	echo "Error: Lisk installation was not found. Exiting."
+	exit 1
 fi
-
-dropdb $DB_NAME > /dev/null 2>&1 || true
 
 jq '.db.database="'$DB_NAME'"' config.json > verify.json.1
 jq '.httpPort=12050' verify.json.1 > verify.json.2
@@ -63,8 +68,7 @@ echo 'Importing blockchain with '"$DB_SNAPSHOT"' to lisk_verify db'
 createdb $DB_NAME
 if ! gunzip -fcq "$DB_SNAPSHOT" | psql -q -U "$USER" -d "$DB_NAME" >> logs/lisk.verify.out 2>&1; then
 	echo "Failed to import blockchain."
-	dropdb $DB_NAME
-        exit 1
+	exit 1
 else
 	echo "Blockchain imported successfully."
 fi
@@ -93,9 +97,7 @@ bash lisk.sh stop_node -p etc/pm2-verify.json
 
 if [[ $DB_HEIGHT -ge $DB_HEIGHT2 ]]; then
 	echo -e 'Snapshot fails verification. Current Block Height:'"$DB_HEIGHT2"
-	dropdb $DB_NAME
 	exit 1
 else
 	echo 'Snapshot passes verification. Current Block Height:'"$DB_HEIGHT2"
-	dropdb $DB_NAME
 fi
