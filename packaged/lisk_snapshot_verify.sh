@@ -43,7 +43,7 @@ cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 # shellcheck disable=SC1090
 . "$PWD/env.sh"
 
-if [ ! -f "$(pwd)/app.js" ]; then
+if [ ! -f "$PWD/app.js" ]; then
         echo "Error: Lisk installation was not found. Exiting."
         exit 1
 fi
