@@ -26,7 +26,7 @@ DB_NAME="lisk_verify"
 function clean_up {
 	RET_CODE=$?
 	dropdb $DB_NAME --if-exists
-	rm verify.json
+	rm -f verify.json
 	exit $RET_CODE
 }
 
@@ -63,7 +63,7 @@ jq '.wsPort=12051' verify.json.2 > verify.json.3
 jq '.logFileName="logs/lisk_verify.log"' verify.json.3 > verify.json.4
 jq '.fileLogLevel="info"' verify.json.4 > verify.json
 
-rm verify.json.*
+rm -f verify.json.*
 
 echo 'Importing blockchain with '"$DB_SNAPSHOT"' to lisk_verify db'
 

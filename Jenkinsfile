@@ -4,7 +4,9 @@ pipeline {
     stage ('shellcheck') {
       steps {
         sh '''#!/bin/bash -xe
-        shopt -s globstar; shellcheck **/*.sh
+        cd packaged
+        shellcheck *.sh
+        cd ../downloaded
         '''
       }
     }
