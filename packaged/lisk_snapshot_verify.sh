@@ -25,6 +25,7 @@ DB_NAME="lisk_verify"
 
 function clean_up {
 	RET_CODE=$?
+	bash lisk.sh stop_node -p etc/pm2-verify.json || true
 	dropdb $DB_NAME --if-exists
 	rm -f verify.json
 	exit $RET_CODE
