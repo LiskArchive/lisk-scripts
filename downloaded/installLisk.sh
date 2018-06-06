@@ -265,7 +265,13 @@ upgrade_lisk() {
 	fi
 
 	echo -e "\\nCopying config.json entries from previous installation"
-	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+
+	UPDATE_CONFIG_JS="$LISK_INSTALL"/scripts/update_config.js
+	if [[ -f "$LISK_INSTALL"/updateConfig.js ]]; then
+		UPDATE_CONFIG_JS="$LISK_INSTALL"/updateConfig.js
+	fi
+
+	"$LISK_INSTALL"/bin/node "$UPDATE_CONFIG_JS" -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
 }
 
 usage() {
