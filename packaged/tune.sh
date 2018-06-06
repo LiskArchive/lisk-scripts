@@ -24,12 +24,8 @@
 ######################################################################
 
 if [[ "$(uname)" == "Linux" ]]; then
-	# shellcheck disable=SC2002
-	# Erreoneous assumption about meminfo as a script
-	MEMORY_BASE=$(cat /proc/meminfo | grep MemTotal | awk '{print $2 }' | cut -f1 -d".")
-fi
-
-if [[ "$(uname)" == "Darwin" ]]; then
+	MEMORY_BASE=$( grep MemTotal /proc/meminfo | awk '{print $2 }' | cut -f1 -d . )
+elif [[ "$(uname)" == "Darwin" ]]; then
 	MEMORY_BASE=$(top -l 1 | grep PhysMem: | awk '{print $10}' |cut -f1 -d".")
 fi
 
