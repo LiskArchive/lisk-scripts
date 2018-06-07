@@ -270,7 +270,7 @@ upgrade_lisk() {
 		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
 	# If latest version
 	elif [[ -z "${LISK_MASTER_PASSWORD}" ]]; then
-        	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
 	else
 		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
 	fi
