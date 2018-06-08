@@ -3,11 +3,12 @@ pipeline {
   stages {
     stage ('shellcheck') {
       steps {
-        sh '''#!/bin/bash -xe
-        cd packaged
-        shellcheck *.sh
-        cd ../downloaded
-        '''
+	dir('packaged') {
+	  sh 'shellcheck *.sh'
+	}
+	dir('downloaded') {
+	  sh 'shellcheck *.sh'
+	}
       }
     }
   }
