@@ -199,9 +199,6 @@ echo -e "\\n$(now) Snapshot verification process completed"
 echo -e "\\n$(now) Deleting data on table 'peers' of database '$TARGET_DB_NAME'"
 psql -d "$TARGET_DB_NAME" -c 'delete from peers;' &> /dev/null
 
-echo -e "\\n$(now) Executing vacuum on database '$TARGET_DB_NAME' before dumping"
-vacuumdb --analyze --full "$TARGET_DB_NAME" &> /dev/null
-
 echo -e "\\n$(now) Dumping snapshot database to gzip file"
 HEIGHT="$(psql -d lisk_snapshot -t -c 'select height from blocks order by height desc limit 1;' | xargs)"
 BACKUP_FULLPATH="${BACKUP_LOCATION}/${SOURCE_DB_NAME}_backup-${HEIGHT}.gz"
