@@ -45,11 +45,11 @@ fi
 if [[ $SHOW_USAGE ]]; then
 	echo "Usage: $0 <-h <BLOCKHEIGHT>> [-s <DIRECTORY>] [-n <NETWORK>] "
 	echo '-h <BLOCKHEIGHT> -- specify blockheight at which bridging will be initiated'
-	echo '-f <TARBALL> -- specify path to local tarball containing the target release'
+	echo '-f <TARBALL>     -- specify path to local tarball containing the target release'
 	echo '-s <DIRECTORY>   -- Lisk home directory'
 	echo '-n <NETWORK>     -- choose main or test'
 	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
-	echo -e '\nSet LISK_MASTER_PASSWORD env variable if you want to do secrets migration in non-interactive mode'
+	echo 'Set the LISK_MASTER_PASSWORD environment variable if you want to do secrets migration in non-interactive mode'
 	exit 1;
 fi
 if [[ ! $LISK_HOME ]]; then
@@ -77,7 +77,6 @@ if [[ "$BLOCK_HEIGHT" -gt "$TARGET_HEIGHT" ]]; then
 fi
 
 bash "$LISK_HOME/lisk.sh" stop
-rm -rf installLisk.sh
 wget --no-clobber "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
 if [[ $LOCAL_TAR ]]; then
 	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -f "$LOCAL_TAR"
