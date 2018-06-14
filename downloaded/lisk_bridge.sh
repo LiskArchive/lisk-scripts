@@ -49,6 +49,7 @@ if [[ $SHOW_USAGE ]]; then
 	echo '-s <DIRECTORY>   -- Lisk home directory'
 	echo '-n <NETWORK>     -- choose main or test'
 	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
+	echo -e '\nUse LISK_MASTER_PASSWORD env variable if you want to do secrets migration in non-interactive mode'
 	exit 1;
 fi
 if [[ ! $LISK_HOME ]]; then
