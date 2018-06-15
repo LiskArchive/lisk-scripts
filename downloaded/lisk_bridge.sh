@@ -77,7 +77,7 @@ if [[ "$BLOCK_HEIGHT" -gt "$TARGET_HEIGHT" ]]; then
 fi
 
 bash "$LISK_HOME/lisk.sh" stop
-rm -rf installLisk.sh
+rm -f installLisk.sh
 wget --no-clobber "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
 if [[ $LOCAL_TAR ]]; then
 	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -f "$LOCAL_TAR"
