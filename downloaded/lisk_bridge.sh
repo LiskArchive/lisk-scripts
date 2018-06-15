@@ -65,18 +65,18 @@ while true; do
 	if [[ "$BLOCK_HEIGHT" -eq -1 ]]; then
 		echo "Unable to get block height"
 	else
-		echo "$BLOCK_HEIGHT"
+		echo "Current Block Height: $BLOCK_HEIGHT"
 	fi
 	[[ "$BLOCK_HEIGHT" -lt "$TARGET_HEIGHT" ]] || break
 	sleep 1
 done
+bash "$LISK_HOME/lisk.sh" stop
 
 if [[ "$BLOCK_HEIGHT" -gt "$TARGET_HEIGHT" ]]; then
 	echo "The block height ($BLOCK_HEIGHT) is above the cut off point. Please see migration guide for next steps"
 	exit 1;
 fi
 
-bash "$LISK_HOME/lisk.sh" stop
 rm -f installLisk.sh
 wget --no-clobber "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
 if [[ $LOCAL_TAR ]]; then
