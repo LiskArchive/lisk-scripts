@@ -247,15 +247,11 @@ upgrade_lisk() {
 	mkdir -m700 "$LISK_INSTALL"/pgsql/data
 
 	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 9.6".* ]]; then
-		echo -e "\\nUpgrading database from PostgreSQL 9.5 to PostgreSQL 9.6"
-		# Disable SC1090 - Its unable to resolve the file but we know its there.
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/env.sh
 		. "$LISK_INSTALL"/env.sh
-		# shellcheck disable=SC2129
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &> $LOG_FILE
-		# shellcheck disable=SC2129
 		"$LISK_NEW_PG"/bin/pg_upgrade -b "$LISK_OLD_PG"/bin -B "$LISK_NEW_PG"/bin -d "$LISK_OLD_PG"/data -D "$LISK_NEW_PG"/data &> $LOG_FILE
 		bash "$LISK_INSTALL"/lisk.sh start_db &> $LOG_FILE
 		bash "$LISK_INSTALL"/analyze_new_cluster.sh &> $LOG_FILE
@@ -274,10 +270,19 @@ upgrade_lisk() {
 	else
 		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
 	fi
+	if [[ "$CLEAN_DB" = "yes" ]]; then
+		echo -e "\\nCleaning up database"
+		( cd "$LISK_INSTALL" || exit 2; bash lisk.sh start_db ) || exit 2
+		sleep 5
+		LISK_DATABASE=$( "$LISK_INSTALL/bin/jq" --raw-output .db.database "$LISK_INSTALL/config.json" )
+		# shellcheck source=../packaged/env.sh
+		. "$LISK_INSTALL"/env.sh
+		psql --dbname="$LISK_DATABASE" --command='DELETE FROM peers;' >/dev/null
+	fi
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
+	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-c]"
 	echo "install         -- install Lisk"
 	echo "upgrade         -- upgrade Lisk"
 	echo " -d <DIRECTORY> -- install location"
@@ -285,23 +290,27 @@ usage() {
 	echo " -h             -- rebuild instead of copying database"
 	echo " -u <URL>       -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>    -- Forces sync from 0"
+	echo " -c             -- Clean database after upgrade"
 }
 
 parse_option() {
+	CLEAN_DB="no"
+
 	OPTIND=2
-	while getopts :d:f:r:u:h0: OPT; do
+	while getopts :d:f:r:u:ch0: OPT; do
 		 # shellcheck disable=SC2220
 		 case "$OPT" in
-			 d) LISK_LOCATION="$OPTARG" ;;
-			 f) LOCAL_TAR="$OPTARG" ;;
-			 r) RELEASE="$OPTARG" ;;
-			 h) REBUILD=true ;;
-			 u) URL="$OPTARG" ;;
-			 0) SYNC="$OPTARG" ;;
+			d) LISK_LOCATION="$OPTARG" ;;
+			f) LOCAL_TAR="$OPTARG" ;;
+			r) RELEASE="$OPTARG" ;;
+			h) REBUILD=true ;;
+			u) URL="$OPTARG" ;;
+			0) SYNC="$OPTARG" ;;
+			c) CLEAN_DB="yes" ;;
 		 esac
 	 done
 
- if [ "$SYNC" ]; then
+	 if [ "$SYNC" ]; then
 		if [[ "$SYNC" != "no" && "$SYNC" != "yes" ]]; then
 			echo "-0 <yes|no>"
 			usage
