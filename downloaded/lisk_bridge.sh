@@ -80,7 +80,7 @@ fi
 rm -f installLisk.sh
 wget --no-clobber "https://downloads.lisk.io/lisk/$BRIDGE_NETWORK/installLisk.sh"
 if [[ $LOCAL_TAR ]]; then
-	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -f "$LOCAL_TAR"
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -c -f "$LOCAL_TAR"
 else
-	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no
+	bash "$PWD/installLisk.sh" upgrade -r "$BRIDGE_NETWORK" -d "$PWD" -0 no -c
 fi
