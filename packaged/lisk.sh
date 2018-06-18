@@ -31,9 +31,9 @@ if [ "$USER" == "root" ]; then
 	exit 1
 fi
 
-# shellcheck disable=SC1090
+# shellcheck source=shared.sh
 . "$(pwd)/shared.sh"
-# shellcheck disable=SC1090
+# shellcheck source=env.sh
 . "$(pwd)/env.sh"
 
 
