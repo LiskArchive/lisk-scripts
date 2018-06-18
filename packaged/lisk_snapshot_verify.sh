@@ -26,7 +26,7 @@ DB_NAME="lisk_verify"
 function clean_up {
 	bash lisk.sh stop_node -p etc/pm2-verify.json || true
 	dropdb $DB_NAME --if-exists
-	rm -f verify.json
+	rm -f etc/verify.json
 }
 
 trap clean_up EXIT
@@ -60,7 +60,7 @@ jq '.db.database="'$DB_NAME'"' config.json > verify.json.1
 jq '.httpPort=12050' verify.json.1 > verify.json.2
 jq '.wsPort=12051' verify.json.2 > verify.json.3
 jq '.logFileName="logs/lisk_verify.log"' verify.json.3 > verify.json.4
-jq '.fileLogLevel="info"' verify.json.4 > verify.json
+jq '.fileLogLevel="info"' verify.json.4 > etc/verify.json
 
 rm -f verify.json.*
 
