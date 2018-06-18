@@ -52,6 +52,15 @@ if [[ $SHOW_USAGE ]]; then
 	echo 'Set the LISK_MASTER_PASSWORD environment variable if you want to do secrets migration in non-interactive mode'
 	exit 1;
 fi
+
+# be nice and fail fast
+if [[ ! -z "$LISK_MASTER_PASSWORD" ]]; then
+	if [[ $( echo -n "$LISK_MASTER_PASSWORD" |wc -c ) -lt 5 ]]; then
+		echo "LISK_MASTER_PASSWORD must be at least 5 characters long."
+		exit 2
+	fi
+fi
+
 if [[ ! $LISK_HOME ]]; then
 	LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
 fi
