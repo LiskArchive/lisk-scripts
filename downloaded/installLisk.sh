@@ -275,9 +275,7 @@ upgrade_lisk() {
 		( cd "$LISK_INSTALL" || exit 2; bash lisk.sh start_db ) || exit 2
 		sleep 5
 		LISK_DATABASE=$( "$LISK_INSTALL/bin/jq" --raw-output .db.database "$LISK_INSTALL/config.json" )
-		# shellcheck source=../packaged/env.sh
-		. "$LISK_INSTALL"/env.sh
-		psql --dbname="$LISK_DATABASE" --command='DELETE FROM peers;' >/dev/null
+		PATH="$LISK_INSTALL/pgsql/bin:$PATH" LD_LIBRARY_PATH="$LISK_INSTALL/pgsql/lib:$LISK_INSTALL/lib" psql --dbname="$LISK_DATABASE" --command='DELETE FROM peers;' >/dev/null
 	fi
 }
 
