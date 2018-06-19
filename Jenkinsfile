@@ -3,9 +3,12 @@ pipeline {
   stages {
     stage ('shellcheck') {
       steps {
-        sh '''#!/bin/bash -xe
-        shopt -s globstar; shellcheck **/*.sh
-        '''
+        dir('downloaded') {
+	  sh 'shellcheck -x *.sh'
+	}
+        dir('packaged') {
+	  sh 'shellcheck -x *.sh'
+	}
       }
     }
   }

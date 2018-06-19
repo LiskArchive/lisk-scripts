@@ -42,30 +42,30 @@ prereq_checks() {
 	echo -e "Checking prerequisites:"
 
 	if [ -x "$(command -v curl)" ]; then
-		echo -e "curl is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
 			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
 	if [ -x "$(command -v tar)" ]; then
-		echo -e "Tar is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
 			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
 	if [ -x "$(command -v wget)" ]; then
-		echo -e "Wget is installed.\\t\\t\\t\\t\\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "Wget is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\\nWget is not installed.\\t\\t\\t\\t\\t$(tput setaf 1)Failed$(tput sgr0)"
+		echo -e "\\nWget is not installed.\\t\\t\\t\\t\\tFailed"
 		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
-	echo -e "$(tput setaf 2)All preqrequisites passed!$(tput sgr0)"
+	echo -e "All preqrequisites passed!"
 }
 
 # Adding LC_ALL LANG and LANGUAGE to user profile
@@ -102,9 +102,16 @@ user_prompts() {
 }
 
 download_lisk() {
+	if [[ "$LOCAL_TAR" ]]; then
+		echo -e "\\nUsing local binary $LOCAL_TAR"
+		LISK_VERSION="$LOCAL_TAR"
+		LISK_DIR=${LISK_VERSION%.tar.gz}
+		return
+	fi
+
 	LISK_VERSION=lisk-$UNAME.tar.gz
 
-	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
+	LISK_DIR=${LISK_VERSION%.tar.gz}
 
 	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256 &> /dev/null
 
@@ -130,14 +137,17 @@ download_lisk() {
 }
 
 install_lisk() {
-	echo -e '\\nExtracting Lisk binaries to '"$LISK_INSTALL"
+	echo -e '\nExtracting Lisk binaries to '"$LISK_INSTALL"
 
 	tar -xzf "$LISK_VERSION" -C "$LISK_LOCATION"
 
 	mv "$LISK_LOCATION/$LISK_DIR" "$LISK_INSTALL"
 
-	echo -e "\\nCleaning up downloaded files"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	# if user is specifying a tarball, we probably don't want to delete it
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nCleaning up downloaded files"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 }
 
 configure_lisk() {
@@ -164,9 +174,11 @@ cleanup_installation() {
 
 	cd ../ || exit 2
 
-	echo -e "\\nRemoving Lisk directory and installation files"
-	rm -rf "$LISK_INSTALL"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nRemoving Lisk directory and installation files"
+		rm -rf "$LISK_INSTALL"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 
 	if [[ "$FRESH_INSTALL" == false ]]; then
 		echo -e "Restoring old Lisk installation"
@@ -235,15 +247,11 @@ upgrade_lisk() {
 	mkdir -m700 "$LISK_INSTALL"/pgsql/data
 
 	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 9.6".* ]]; then
-		echo -e "\\nUpgrading database from PostgreSQL 9.5 to PostgreSQL 9.6"
-		# Disable SC1090 - Its unable to resolve the file but we know its there.
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/env.sh
 		. "$LISK_INSTALL"/env.sh
-		# shellcheck disable=SC2129
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &> $LOG_FILE
-		# shellcheck disable=SC2129
 		"$LISK_NEW_PG"/bin/pg_upgrade -b "$LISK_OLD_PG"/bin -B "$LISK_NEW_PG"/bin -d "$LISK_OLD_PG"/data -D "$LISK_NEW_PG"/data &> $LOG_FILE
 		bash "$LISK_INSTALL"/lisk.sh start_db &> $LOG_FILE
 		bash "$LISK_INSTALL"/analyze_new_cluster.sh &> $LOG_FILE
@@ -253,11 +261,26 @@ upgrade_lisk() {
 	fi
 
 	echo -e "\\nCopying config.json entries from previous installation"
-	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	# If 0.9.x version
+	if [[ -f "${LISK_INSTALL}/updateConfig.js" ]]; then
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+	# If latest version
+	elif [[ -z "${LISK_MASTER_PASSWORD}" ]]; then
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
+	else
+		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
+	fi
+	if [[ "$CLEAN_DB" = "yes" ]]; then
+		echo -e "\\nCleaning up database"
+		( cd "$LISK_INSTALL" || exit 2; bash lisk.sh start_db ) || exit 2
+		sleep 5
+		LISK_DATABASE=$( "$LISK_INSTALL/bin/jq" --raw-output .db.database "$LISK_INSTALL/config.json" )
+		PATH="$LISK_INSTALL/pgsql/bin:$PATH" LD_LIBRARY_PATH="$LISK_INSTALL/pgsql/lib:$LISK_INSTALL/lib" psql --dbname="$LISK_DATABASE" --command='DELETE FROM peers;' >/dev/null
+	fi
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
+	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-c]"
 	echo "install         -- install Lisk"
 	echo "upgrade         -- upgrade Lisk"
 	echo " -d <DIRECTORY> -- install location"
@@ -265,22 +288,27 @@ usage() {
 	echo " -h             -- rebuild instead of copying database"
 	echo " -u <URL>       -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>    -- Forces sync from 0"
+	echo " -c             -- Clean database after upgrade"
 }
 
 parse_option() {
+	CLEAN_DB="no"
+
 	OPTIND=2
-	while getopts :d:r:u:h0: OPT; do
+	while getopts :d:f:r:u:ch0: OPT; do
 		 # shellcheck disable=SC2220
 		 case "$OPT" in
-			 d) LISK_LOCATION="$OPTARG" ;;
-			 r) RELEASE="$OPTARG" ;;
-			 h) REBUILD=true ;;
-			 u) URL="$OPTARG" ;;
-			 0) SYNC="$OPTARG" ;;
+			d) LISK_LOCATION="$OPTARG" ;;
+			f) LOCAL_TAR="$OPTARG" ;;
+			r) RELEASE="$OPTARG" ;;
+			h) REBUILD=true ;;
+			u) URL="$OPTARG" ;;
+			0) SYNC="$OPTARG" ;;
+			c) CLEAN_DB="yes" ;;
 		 esac
 	 done
 
- if [ "$SYNC" ]; then
+	 if [ "$SYNC" ]; then
 		if [[ "$SYNC" != "no" && "$SYNC" != "yes" ]]; then
 			echo "-0 <yes|no>"
 			usage
