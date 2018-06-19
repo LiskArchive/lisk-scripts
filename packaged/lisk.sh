@@ -19,29 +19,29 @@
 
 # shellcheck disable=SC2129
 
-cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
+cd "$( cd -P -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd -P )" || exit 2
 
-if [ ! -f "$(pwd)/app.js" ]; then
+if [ ! -f "$PWD/app.js" ]; then
 	echo "Error: Lisk installation was not found. Exiting."
 	exit 1
 fi
 
-if [ "$USER" == "root" ]; then
+if [ "$UID" == 0 ]; then
 	echo "Error: Lisk should not be run be as root. Exiting."
 	exit 1
 fi
 
 # shellcheck source=env.sh
-. "$(pwd)/env.sh"
+. "$PWD/env.sh"
 # shellcheck source=shared.sh
-. "$(pwd)/shared.sh"
+. "$PWD/shared.sh"
 
-PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
+PM2_CONFIG="$PWD/etc/pm2-lisk.json"
 PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
 
 LISK_LOGS=$( get_config '.logFileName' )
 
-LOGS_DIR="$(pwd)/logs"
+LOGS_DIR="$PWD/logs"
 
 MINIMAL_DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
 # Allocates variables for use later, reusable for changing pm2 config.
@@ -50,18 +50,18 @@ config() {
 	DB_PORT=$( get_config '.db.port' )
 	DB_USER=$( get_config '.db.user' )
 	DB_PASS=$( get_config '.db.password' )
-	DB_DATA="$(pwd)/pgsql/data"
+	DB_DATA="$PWD/pgsql/data"
 	DB_LOG_FILE="$LOGS_DIR/pgsql.log"
 	DB_SNAPSHOT="blockchain.db.gz"
 	DB_DOWNLOAD=Y
 
-	REDIS_CONFIG="$(pwd)/etc/redis.conf"
-	REDIS_BIN="$(pwd)/bin/redis-server"
-	REDIS_CLI="$(pwd)/bin/redis-cli"
+	REDIS_CONFIG="$PWD/etc/redis.conf"
+	REDIS_BIN="$PWD/bin/redis-server"
+	REDIS_CLI="$PWD/bin/redis-cli"
 	REDIS_ENABLED=$( get_config '.cacheEnabled' )
 	REDIS_PORT=$( get_config '.redis.port' )
 	REDIS_PASSWORD=$( get_config '.redis.password' )
-	REDIS_PID="$(pwd)/redis/redis_6380.pid"
+	REDIS_PID="$PWD/redis/redis_6380.pid"
 }
 
 # Sets all of the variables
@@ -92,7 +92,7 @@ create_user() {
 		echo "X Failed to create Postgresql user."
 		exit 1
 	else
-		echo "√ Postgresql user created successfully."
+		echo "+ Postgresql user created successfully."
 	fi
 }
 
@@ -103,7 +103,7 @@ create_database() {
 		echo "X Failed to create Postgresql database."
 		exit 1
 	else
-		echo "√ Postgresql database created successfully."
+		echo "+ Postgresql database created successfully."
 	fi
 }
 
@@ -135,7 +135,7 @@ download_blockchain() {
 		return
 	fi
 	rm -f "$DB_SNAPSHOT"
-	echo "√ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
+	echo "+ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
 	if ! curl --fail --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
 		rm -f "$DB_SNAPSHOT"
 		echo "X Failed to download blockchain snapshot."
@@ -143,19 +143,21 @@ download_blockchain() {
 	else
 		# Required to clean up ugly curl output in the logs
 		sed -i -e '/[#]/d' "$SH_LOG_FILE"
-		echo "√ Blockchain snapshot downloaded successfully."
+		echo "+ Blockchain snapshot downloaded successfully."
 	fi
 }
 
 restore_blockchain() {
 	echo 'Restoring blockchain with '"$DB_SNAPSHOT"
 
+	set -o pipefail
 	if ! gunzip -fcq "$DB_SNAPSHOT" | psql -q -U "$DB_USER" -d "$DB_NAME" >> "$SH_LOG_FILE" 2>&1; then
 		echo "X Failed to restore blockchain."
 		exit 1
 	else
-		echo "√ Blockchain restored successfully."
+		echo "+ Blockchain restored successfully."
 	fi
+	set +o pipefail
 }
 
 autostart_cron() {
@@ -170,7 +172,7 @@ autostart_cron() {
 
 	crontab=$(cat <<-EOF
 		$crontab
-		@reboot $(command -v "bash") $(pwd)/lisk.sh start > $(pwd)/cron.log 2>&1
+		@reboot $(command -v "bash") $PWD/lisk.sh start > $PWD/cron.log 2>&1
 EOF
 	)
 
@@ -178,7 +180,7 @@ EOF
 		echo "X Failed to update crontab."
 		return 1
 	else
-		echo "√ Crontab updated successfully."
+		echo "+ Crontab updated successfully."
 		return 0
 	fi
 }
@@ -200,29 +202,29 @@ coldstart_lisk() {
 
 start_postgresql() {
 	if pgrep -x "postgres" > /dev/null 2>&1; then
-		echo "√ Postgresql is running."
+		echo "+ Postgresql is running."
 	else
 		if ! pg_ctl -w -D "$DB_DATA" -l "$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
 			echo "X Failed to start Postgresql."
 			exit 1
 		else
-			echo "√ Postgresql started successfully."
+			echo "+ Postgresql started successfully."
 		fi
 	fi
 }
 
 stop_postgresql() {
 	if ! pgrep -x "postgres" > /dev/null 2>&1; then
-		echo "√ Postgresql is not running."
+		echo "+ Postgresql is not running."
 	else
 		if pg_ctl -D "$DB_DATA" -l "$DB_LOG_FILE" stop >> "$SH_LOG_FILE" 2>&1; then
-			echo "√ Postgresql stopped successfully."
+			echo "+ Postgresql stopped successfully."
 			else
 			echo "X Postgresql failed to stop."
 		fi
 		if pgrep -x "postgres" >> "$SH_LOG_FILE" 2>&1; then
 			pkill -x postgres -9 >> "$SH_LOG_FILE" 2>&1;
-			echo "√ Postgresql Killed."
+			echo "+ Postgresql Killed."
 		fi
 	fi
 }
@@ -230,17 +232,17 @@ stop_postgresql() {
 start_redis() {
 	if [[ "$REDIS_ENABLED" == 'true' ]]; then
 		if [[ "$REDIS_PORT" == '6379' ]]; then
-			echo "√ Using OS Redis-Server, skipping startup"
+			echo "+ Using OS Redis-Server, skipping startup"
 		elif [[ ! -f "$REDIS_PID" ]]; then
 
 			if "$REDIS_BIN" "$REDIS_CONFIG"; then
-				echo "√ Redis-Server started successfully."
+				echo "+ Redis-Server started successfully."
 			else
 				echo "X Failed to start Redis-Server."
 				exit 1
 			fi
 		else
-			echo "√ Redis-Server is already running"
+			echo "+ Redis-Server is already running"
 		fi
 	fi
 }
@@ -248,19 +250,19 @@ start_redis() {
 stop_redis() {
 	if [[ "$REDIS_ENABLED" == 'true' ]]; then
 		if [[ "$REDIS_PORT" == '6379' ]]; then
-			echo "√ OS Redis-Server detected, skipping shutdown"
+			echo "+ OS Redis-Server detected, skipping shutdown"
 		elif [[ -f "$REDIS_PID" ]]; then
 
 			if stop_redis_cmd; then
-				echo "√ Redis-Server stopped successfully."
+				echo "+ Redis-Server stopped successfully."
 			else
 				echo "X Failed to stop Redis-Server."
 				REDIS_PID="$(tail -n1 "$REDIS_PID")"
 				pkill -9 "$REDIS_PID"
-				echo "√ Redis-Server killed"
+				echo "+ Redis-Server killed"
 			fi
 		else
-			echo "√ Redis-Server already stopped"
+			echo "+ Redis-Server already stopped"
 		fi
 	fi
 }
@@ -277,7 +279,7 @@ stop_redis_cmd(){
 start_lisk() {
 	start_redis
 	if pm2 start "$PM2_CONFIG"  >> "$SH_LOG_FILE"; then
-		echo "√ Lisk started successfully."
+		echo "+ Lisk started successfully."
 		sleep 3
 		check_status
 	else
@@ -287,7 +289,7 @@ start_lisk() {
 
 stop_lisk() {
 	pm2 delete "$PM2_CONFIG" >> "$SH_LOG_FILE"
-	echo "√ Lisk stopped successfully."
+	echo "+ Lisk stopped successfully."
 	stop_redis
 }
 
@@ -316,7 +318,7 @@ check_status() {
 
 	check_pid
 	if [ "$STATUS" -eq 0  ]; then
-		echo "√ Lisk is running as PID: $PID"
+		echo "+ Lisk is running as PID: $PID"
 		blockheight
 	else
 		echo "X Lisk is not running"
@@ -337,7 +339,7 @@ check_pid() {
 }
 
 lisk() {
-	node "$(pwd)/bin/lisk"
+	node "$PWD/bin/lisk"
 }
 
 tail_logs() {
@@ -393,9 +395,9 @@ parse_option() {
 				DB_DOWNLOAD=N
 				;;
 
-			 :) echo 'Missing option argument for -'"$OPTARG" >&2; exit 1;;
+			:) echo 'Missing option argument for -'"$OPTARG" >&2; exit 1;;
 
-			 *) echo 'Unimplemented option: -'"$OPTARG" >&2; exit 1;;
+			*) echo 'Unimplemented option: -'"$OPTARG" >&2; exit 1;;
 		esac
 	done
 }
