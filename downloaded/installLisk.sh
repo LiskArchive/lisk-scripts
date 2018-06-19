@@ -57,14 +57,6 @@ prereq_checks() {
 		exit 2
 	fi
 
-	if [ -x "$(command -v wget)" ]; then
-		echo -e "Wget is installed.\\t\\t\\t\\t\\tPassed"
-	else
-		echo -e "\\nWget is not installed.\\t\\t\\t\\t\\tFailed"
-		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
-		exit 2
-	fi
-
 	echo -e "All preqrequisites passed!"
 }
 
