@@ -24,9 +24,9 @@
 ### Init. Env. #######################################################
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
-# shellcheck disable=SC1090
+# shellcheck source=shared.sh
 . "$(pwd)/shared.sh"
-# shellcheck disable=SC1090
+# shellcheck source=env.sh
 . "$(pwd)/env.sh"
 
 ### Variables Definition #############################################
@@ -174,7 +174,8 @@ echo -e "\\n$(now) Beginning snapshot verification process"
 bash lisk.sh start -p "$PM2_CONFIG"
 
 MINUTES=0
-until (grep -Eq 'Snapshot creation finished|Snapshot finished' "$LOG_LOCATION"); do
+
+while [[ $(pm2 jlist | jq --raw-output '.[] | select(.name == "lisk.snapshot") | .pm2_env.status') == "online" ]]; do
 	sleep 60
 
 	if [ "$( stat --format=%Y "$LOG_LOCATION" )" -le $(( $(date +%s) - ( STALL_THRESHOLD_CURRENT * 60 ) )) ]; then
