@@ -82,7 +82,7 @@ done
 bash "$LISK_HOME/lisk.sh" stop
 
 if [[ "$BLOCK_HEIGHT" -gt "$TARGET_HEIGHT" ]]; then
-	echo "The block height ($BLOCK_HEIGHT) is above the cut off point. Please see migration guide for next steps"
+	echo "The block height ($BLOCK_HEIGHT) is above the cut off point. Please see migration guide (https://lisk.io/documentation/lisk-core/upgrade/migration) for next steps"
 	exit 1;
 fi
 
