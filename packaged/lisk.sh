@@ -48,7 +48,7 @@ LOGS_DIR="$(pwd)/logs"
 config() {
 	DB_NAME="$(jq -r '.db.database' "$LISK_CONFIG")"
 	DB_PORT="$(jq -r '.db.port' "$LISK_CONFIG")"
-	DB_USER="$USER"
+	DB_USER="$(jq -r '.db.user' "$LISK_CONFIG")"
 	DB_PASS="password"
 	DB_DATA="$(pwd)/pgsql/data"
 	DB_LOG_FILE="$LOGS_DIR/pgsql.log"
