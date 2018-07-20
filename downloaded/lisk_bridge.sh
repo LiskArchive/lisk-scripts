@@ -67,6 +67,7 @@ fi
 JQ="$LISK_HOME/bin/jq"
 
 LISK_CONFIG="$LISK_HOME/config.json"
+# Only work with 0.9.x and 1.0.x releases, in 1.1.x release version is moved to package.json
 LISK_VERSION="$($JQ -r '.version' "$LISK_CONFIG" | tr -d '[:space:]')"
 
 # If its 0.9.x release 
