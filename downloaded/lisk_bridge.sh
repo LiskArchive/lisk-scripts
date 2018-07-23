@@ -73,14 +73,16 @@ LISK_VERSION="$($JQ -r '.version' "$LISK_CONFIG" | tr -d '[:space:]')"
 # If its 0.9.x release 
 if [[ $LISK_VERSION == 0* ]]; then 
 	PORT="$($JQ -r '.port' "$LISK_CONFIG" | tr -d '[:space:]')"
-	HEIGHT_COMMAND="$(curl -s http://localhost:"$PORT"/api/loader/status/sync | $JQ -r '.height' || echo -1 )"
+	HEIGHT_URL="http://localhost:$PORT/api/loader/status/sync"
+	HEIGHT_FILTER=".height"
 else
 	PORT="$($JQ -r '.httpPort' "$LISK_CONFIG" | tr -d '[:space:]')"
-	HEIGHT_COMMAND="$(curl -s http://localhost:"$PORT"/api/node/status | $JQ -r '.data.height' || echo -1 )"
+	HEIGHT_URL="http://localhost:$PORT/api/node/status"
+	HEIGHT_FILTER=".data.height"
 fi
 
 while true; do
-	BLOCK_HEIGHT="$($HEIGHT_COMMAND)"
+	BLOCK_HEIGHT="$( curl --silent "$HEIGHT_URL" | $JQ -r $HEIGHT_FILTER || echo -1 )"
 	if [[ "$BLOCK_HEIGHT" -eq -1 ]]; then
 		echo "Unable to get block height"
 	else
