@@ -39,3 +39,21 @@ check_cmds() {
 		}
 	done
 }
+
+function get_lisk_app_name() {
+	local PM2_CONFIG=$1
+	PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
+	echo "$PM2_APP"
+}
+
+function get_lisk_custom_config() {
+	local PM2_CONFIG=$1
+	local REGEXP="-c ([^ ]+)"
+	PM2_APP_ARGS="$( jq .apps[0].args -r "$PM2_CONFIG" )"
+	if [[ "$PM2_APP_ARGS" =~ $REGEXP ]]; then
+		LISK_CUSTOM_CONFIG="${BASH_REMATCH[1]}"
+	else
+		LISK_CUSTOM_CONFIG=/dev/null
+	fi
+	echo "$LISK_CUSTOM_CONFIG"
+}
