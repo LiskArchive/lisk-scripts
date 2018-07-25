@@ -38,18 +38,32 @@ fi
 
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
-PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
-LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
-LISK_LOGS="$(jq -r '.logFileName' "$LISK_CONFIG")"
+PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
+LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG" )
+
+function get_config() {
+# use first of: custom configuration file, network configuration file or default configuration file
+	local KEY=$1
+	VALUE=$( jq --raw-output "$KEY" "$LISK_CUSTOM_CONFIG" )
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/$LISK_NETWORK/config.json" )
+	fi
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/default/config.json" )
+	fi
+	echo "$VALUE"
+}
+
+LISK_LOGS=$( get_config '.logFileName' )
 
 LOGS_DIR="$(pwd)/logs"
 
 # Allocates variables for use later, reusable for changing pm2 config.
 config() {
-	DB_NAME="$(jq -r '.db.database' "$LISK_CONFIG")"
-	DB_PORT="$(jq -r '.db.port' "$LISK_CONFIG")"
-	DB_USER="$(jq -r '.db.user' "$LISK_CONFIG")"
-	DB_PASS="password"
+	DB_NAME=$( get_config '.db.database' )
+	DB_PORT=$( get_config '.db.port' )
+	DB_USER=$( get_config '.db.user' )
+	DB_PASS=$( get_config '.db.password' )
 	DB_DATA="$(pwd)/pgsql/data"
 	DB_LOG_FILE="$LOGS_DIR/pgsql.log"
 	DB_SNAPSHOT="blockchain.db.gz"
@@ -58,9 +72,9 @@ config() {
 	REDIS_CONFIG="$(pwd)/etc/redis.conf"
 	REDIS_BIN="$(pwd)/bin/redis-server"
 	REDIS_CLI="$(pwd)/bin/redis-cli"
-	REDIS_ENABLED="$(jq -r '.cacheEnabled' "$LISK_CONFIG")"
-	REDIS_PORT="$(jq -r '.redis.port' "$LISK_CONFIG")"
-	REDIS_PASSWORD="$(jq -r '.redis.password' "$LISK_CONFIG")"
+	REDIS_ENABLED=$( get_config '.cacheEnabled' )
+	REDIS_PORT=$( get_config '.redis.port' )
+	REDIS_PASSWORD=$( get_config '.redis.password' )
 	REDIS_PID="$(pwd)/redis/redis_6380.pid"
 }
 
@@ -81,21 +95,7 @@ blockheight() {
 }
 
 network() {
-	NETHASH=$( jq -r .nethash "$LISK_CONFIG" )
-	case $NETHASH in
-		"ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511")
-			NETWORK="main"
-			;;
-		"da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba")
-			NETWORK="test"
-			;;
-		"ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c")
-			NETWORK="beta"
-			;;
-		*)
-			NETWORK="local"
-			;;
-	esac
+	NETWORK=${LISK_NETWORK%net}
 	echo -e 'Lisk configured for '"$NETWORK"' network\n' >> "$SH_LOG_FILE" 2>&1
 }
 
@@ -371,8 +371,8 @@ parse_option() {
 			p)
 				if [ -f "$OPTARG" ]; then
 					PM2_CONFIG="$OPTARG"
-					PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
-					LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
+					PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
+					LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG" )
 					# Resets all of the variables
 					config
 				else
