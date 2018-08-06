@@ -20,5 +20,9 @@
 LISK_PATH=$( cd -P -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd -P )
 
 export PATH="$LISK_PATH/bin:$LISK_PATH/pgsql/bin:$PATH"
-export LD_LIBRARY_PATH="$LISK_PATH/pgsql/lib:$LISK_PATH/lib:$LD_LIBRARY_PATH"
+if [ "$( uname -s )" = "Darwin" ]; then
+	export DYLD_FALLBACK_LIBRARY_PATH="$LISK_PATH/pgsql/lib:$LISK_PATH/lib"
+else
+	export LD_LIBRARY_PATH="$LISK_PATH/pgsql/lib:$LISK_PATH/lib:$LD_LIBRARY_PATH"
+fi
 export PM2_HOME=$LISK_PATH/.pm2
