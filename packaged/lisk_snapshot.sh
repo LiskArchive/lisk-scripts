@@ -159,7 +159,7 @@ bash lisk.sh stop_node -p "$PM2_CONFIG" &> /dev/null
 cat /dev/null > "$LOG_LOCATION"
 dropdb --if-exists "$TARGET_DB_NAME" &> /dev/null
 
-echo -e "\\n$(now) Deleting snapshots older then $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
+echo -e "\\n$(now) Deleting snapshots older than $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
 mkdir -p "$BACKUP_LOCATION" &> /dev/null
 find "$BACKUP_LOCATION" -name "${SOURCE_DB_NAME}*.gz" -mtime +"$(( DAYS_TO_KEEP - 1 ))" -exec rm {} \;
 
