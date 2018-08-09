@@ -38,6 +38,13 @@ while getopts ":s:f:n:h:" OPT; do
 		   SHOW_USAGE=1 ;;
 	esac
 done
+
+if [ ! -d ./lisk-$BRIDGE_NETWORK ]; then
+  echo "Wrong directory. Cannot find lisk-$BRIDGE_NETWORK";
+  exit 1;
+fi
+
+
 if [[ -z $TARGET_HEIGHT ]]; then
 	echo 'Error: -h <BLOCKHEIGHT> must be specified'>&2
 	SHOW_USAGE=1;
