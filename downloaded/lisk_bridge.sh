@@ -38,19 +38,10 @@ while getopts ":s:f:n:h:" OPT; do
 		   SHOW_USAGE=1 ;;
 	esac
 done
+
 if [[ -z $TARGET_HEIGHT ]]; then
 	echo 'Error: -h <BLOCKHEIGHT> must be specified'>&2
 	SHOW_USAGE=1;
-fi
-if [[ $SHOW_USAGE ]]; then
-	echo "Usage: $0 <-h <BLOCKHEIGHT>> [-s <DIRECTORY>] [-n <NETWORK>] "
-	echo '-h <BLOCKHEIGHT> -- specify blockheight at which bridging will be initiated'
-	echo '-f <TARBALL>     -- specify path to local tarball containing the target release'
-	echo '-s <DIRECTORY>   -- Lisk home directory'
-	echo '-n <NETWORK>     -- choose main or test'
-	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
-	echo 'Set the LISK_MASTER_PASSWORD environment variable if you want to do secrets migration in non-interactive mode'
-	exit 1;
 fi
 
 # be nice and fail fast
@@ -63,6 +54,31 @@ fi
 
 if [[ ! $LISK_HOME ]]; then
 	LISK_HOME="$HOME/lisk-$BRIDGE_NETWORK"
+fi
+
+# basic sanity checks
+if [[ ! -f "$LISK_HOME/app.js" ]]; then
+	echo "Error: Cannot find lisk installation in $LISK_HOME"
+	SHOW_USAGE=1
+fi
+
+ABSOLUTE_LISK_HOME=$(cd -P "$LISK_HOME")
+ABSOLUTE_CWD=$(cd -P "$PWD")
+
+if [[ "$ABSOLUTE_LISK_HOME" == "$ABSOLUTE_CWD" ]]; then
+	echo "Error: $0 must NOT be in the same directory as the lisk installation ($LISK_HOME)"
+	SHOW_USAGE=1
+fi
+
+if [[ $SHOW_USAGE ]]; then
+	echo "Usage: $0 <-h <BLOCKHEIGHT>> [-s <DIRECTORY>] [-n <NETWORK>] "
+	echo '-h <BLOCKHEIGHT> -- specify blockheight at which bridging will be initiated'
+	echo '-f <TARBALL>     -- specify path to local tarball containing the target release'
+	echo '-s <DIRECTORY>   -- Lisk home directory'
+	echo '-n <NETWORK>     -- choose main or test'
+	echo -e '\nExample: bash lisk_bridge.sh -h 50000000 -n test -s /home/lisk/lisk-test'
+	echo 'Set the LISK_MASTER_PASSWORD environment variable if you want to do secrets migration in non-interactive mode'
+	exit 1;
 fi
 JQ="$LISK_HOME/bin/jq"
 
