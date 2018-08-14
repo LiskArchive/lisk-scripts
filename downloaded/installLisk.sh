@@ -252,16 +252,21 @@ upgrade_lisk() {
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
 
-	echo -e "\\nCopying config.json entries from previous installation"
-	# If 0.9.x version
-	if [[ -f "${LISK_INSTALL}/updateConfig.js" ]]; then
-		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
-	# If latest version
-	elif [[ -z "${LISK_MASTER_PASSWORD}" ]]; then
-		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
-	else
-		"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
+	SOURCE_VERSION=$( jq --raw-output .version "$LISK_LOCATION/backup/lisk-$RELEASE/config.json" )
+	TARGET_VERSION=$( jq --raw-output .version "$LISK_INSTALL/config.json" )
+	if [ "$SOURCE_VERSION" != "$TARGET_VERSION" ]; then
+		echo -e "\\nCopying config.json entries from previous installation"
+		# If 0.9.x version
+		if [[ -f "${LISK_INSTALL}/updateConfig.js" ]]; then
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+		# If latest version
+		elif [[ -z "${LISK_MASTER_PASSWORD}" ]]; then
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
+		else
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
+		fi
 	fi
+
 	if [[ "$CLEAN_DB" = "yes" ]]; then
 		echo -e "\\nCleaning up database"
 		( cd "$LISK_INSTALL" || exit 2; bash lisk.sh start_db ) || exit 2
