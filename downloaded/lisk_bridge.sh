@@ -62,8 +62,8 @@ if [[ ! -f "$LISK_HOME/app.js" ]]; then
 	SHOW_USAGE=1
 fi
 
-ABSOLUTE_LISK_HOME=$(cd -P "$LISK_HOME")
-ABSOLUTE_CWD=$(cd -P "$PWD")
+ABSOLUTE_LISK_HOME=$(cd -P "$LISK_HOME" && pwd)
+ABSOLUTE_CWD=$(cd -P "$PWD" && pwd)
 
 if [[ "$ABSOLUTE_LISK_HOME" == "$ABSOLUTE_CWD" ]]; then
 	echo "Error: $0 must NOT be in the same directory as the lisk installation ($LISK_HOME)"
