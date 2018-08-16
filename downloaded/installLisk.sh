@@ -252,8 +252,8 @@ upgrade_lisk() {
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
 
-	SOURCE_VERSION=$( jq --raw-output .version "$LISK_LOCATION/backup/lisk-$RELEASE/config.json" )
-	TARGET_VERSION=$( jq --raw-output .version "$LISK_INSTALL/config.json" )
+	SOURCE_VERSION=$( "$LISK_INSTALL/bin/jq" --raw-output .version "$LISK_LOCATION/backup/lisk-$RELEASE/config.json" )
+	TARGET_VERSION=$( "$LISK_INSTALL/bin/jq" --raw-output .version "$LISK_INSTALL/config.json" )
 	if [ "$SOURCE_VERSION" != "$TARGET_VERSION" ]; then
 		echo -e "\\nCopying config.json entries from previous installation"
 		# If 0.9.x version
