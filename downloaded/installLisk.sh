@@ -293,8 +293,8 @@ parse_option() {
 
 	OPTIND=2
 	while getopts :d:f:r:u:ch0: OPT; do
-		 # shellcheck disable=SC2220
-		 case "$OPT" in
+		# shellcheck disable=SC2220
+		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
 			f) LOCAL_TAR="$OPTARG" ;;
 			r) RELEASE="$OPTARG" ;;
@@ -302,10 +302,10 @@ parse_option() {
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			c) CLEAN_DB="yes" ;;
-		 esac
-	 done
+		esac
+	done
 
-	 if [ "$SYNC" ]; then
+	if [ "$SYNC" ]; then
 		if [[ "$SYNC" != "no" && "$SYNC" != "yes" ]]; then
 			echo "-0 <yes|no>"
 			usage
