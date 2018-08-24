@@ -45,7 +45,7 @@ prereq_checks() {
 		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
-			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
@@ -53,7 +53,7 @@ prereq_checks() {
 		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
-			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
@@ -224,12 +224,12 @@ start_lisk() { # Parse the various startup flags
 		bash lisk.sh rebuild
 	else
 		if [[ "$SYNC" == "yes" ]]; then
-				echo -e "\\nStarting Lisk from genesis"
-				bash lisk.sh rebuild -f var/db/blockchain.db.gz
-		 else
-			 echo -e "\\nStarting Lisk with current blockchain"
-			 cd "$LISK_INSTALL" || exit 2
-			 bash lisk.sh start
+			echo -e "\\nStarting Lisk from genesis"
+			bash lisk.sh rebuild -f var/db/blockchain.db.gz
+		else
+			echo -e "\\nStarting Lisk with current blockchain"
+			cd "$LISK_INSTALL" || exit 2
+			bash lisk.sh start
 		fi
 	fi
 }
@@ -277,15 +277,16 @@ upgrade_lisk() {
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-c]"
-	echo "install         -- install Lisk"
-	echo "upgrade         -- upgrade Lisk"
-	echo " -d <DIRECTORY> -- install location"
-	echo " -r <RELEASE>   -- choose main or test"
-	echo " -h             -- rebuild instead of copying database"
-	echo " -u <URL>       -- URL to rebuild from - Requires -h"
-	echo " -0 <yes|no>    -- Forces sync from 0"
-	echo " -c             -- Clean database after upgrade"
+	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
+	echo "install             -- install Lisk"
+	echo "upgrade             -- upgrade Lisk"
+	echo " -d <DIRECTORY>     -- install location"
+	echo " -f <FILE>          -- use a local tarball to install"
+	echo " -r <main|test|dev> -- choose network (default: main)"
+	echo " -h                 -- rebuild instead of copying database"
+	echo " -u <URL>           -- URL to rebuild from - Requires -h"
+	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
+	echo " -c                 -- clean database after upgrade"
 }
 
 parse_option() {
@@ -293,8 +294,8 @@ parse_option() {
 
 	OPTIND=2
 	while getopts :d:f:r:u:ch0: OPT; do
-		 # shellcheck disable=SC2220
-		 case "$OPT" in
+		# shellcheck disable=SC2220
+		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
 			f) LOCAL_TAR="$OPTARG" ;;
 			r) RELEASE="$OPTARG" ;;
@@ -302,10 +303,10 @@ parse_option() {
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			c) CLEAN_DB="yes" ;;
-		 esac
-	 done
+		esac
+	done
 
-	 if [ "$SYNC" ]; then
+	if [ "$SYNC" ]; then
 		if [[ "$SYNC" != "no" && "$SYNC" != "yes" ]]; then
 			echo "-0 <yes|no>"
 			usage
