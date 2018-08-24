@@ -273,15 +273,15 @@ upgrade_lisk() {
 
 usage() {
 	echo "Usage: $0 <install|upgrade> [-d <directory>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
-	echo "install         -- install Lisk"
-	echo "upgrade         -- upgrade Lisk"
-	echo " -d <DIRECTORY> -- install location"
-	echo " -f <FILE>      -- use a local tarball to install"
-	echo " -r <RELEASE>   -- choose main or test"
-	echo " -h             -- rebuild instead of copying database"
-	echo " -u <URL>       -- URL to rebuild from - Requires -h"
-	echo " -0 <yes|no>    -- Forces sync from 0"
-	echo " -c             -- Clean database after upgrade"
+	echo "install             -- install Lisk"
+	echo "upgrade             -- upgrade Lisk"
+	echo " -d <DIRECTORY>     -- install location"
+	echo " -f <FILE>          -- use a local tarball to install"
+	echo " -r <main|test|dev> -- choose network (default: main)"
+	echo " -h                 -- rebuild instead of copying database"
+	echo " -u <URL>           -- URL to rebuild from - Requires -h"
+	echo " -0 <yes|no>        -- Forces sync from 0 (default: no)"
+	echo " -c                 -- Clean database after upgrade"
 }
 
 parse_option() {
