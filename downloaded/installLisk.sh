@@ -280,8 +280,8 @@ usage() {
 	echo " -r <main|test|dev> -- choose network (default: main)"
 	echo " -h                 -- rebuild instead of copying database"
 	echo " -u <URL>           -- URL to rebuild from - Requires -h"
-	echo " -0 <yes|no>        -- Forces sync from 0 (default: no)"
-	echo " -c                 -- Clean database after upgrade"
+	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
+	echo " -c                 -- clean database after upgrade"
 }
 
 parse_option() {
