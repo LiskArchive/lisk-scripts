@@ -272,7 +272,7 @@ upgrade_lisk() {
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
+	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
 	echo "install             -- install Lisk"
 	echo "upgrade             -- upgrade Lisk"
 	echo " -d <DIRECTORY>     -- install location"
