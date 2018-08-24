@@ -45,7 +45,7 @@ prereq_checks() {
 		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
-			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
@@ -53,7 +53,7 @@ prereq_checks() {
 		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
-			echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
@@ -224,12 +224,12 @@ start_lisk() { # Parse the various startup flags
 		bash lisk.sh rebuild
 	else
 		if [[ "$SYNC" == "yes" ]]; then
-				echo -e "\\nStarting Lisk from genesis"
-				bash lisk.sh rebuild -f var/db/blockchain.db.gz
-		 else
-			 echo -e "\\nStarting Lisk with current blockchain"
-			 cd "$LISK_INSTALL" || exit 2
-			 bash lisk.sh start
+			echo -e "\\nStarting Lisk from genesis"
+			bash lisk.sh rebuild -f var/db/blockchain.db.gz
+		else
+			echo -e "\\nStarting Lisk with current blockchain"
+			cd "$LISK_INSTALL" || exit 2
+			bash lisk.sh start
 		fi
 	fi
 }
