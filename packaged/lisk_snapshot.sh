@@ -24,22 +24,22 @@
 ### Init. Env. #######################################################
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
-# shellcheck disable=SC1090
+# shellcheck source=shared.sh
 . "$(pwd)/shared.sh"
-# shellcheck disable=SC1090
+# shellcheck source=env.sh
 . "$(pwd)/env.sh"
 
 ### Variables Definition #############################################
 
-SNAPSHOT_CONFIG="$(pwd)/etc/snapshot.json"
-TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
-LOG_LOCATION="$(grep "logFileName" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
+SNAPSHOT_CONFIG="$PWD/etc/snapshot.json"
+TARGET_DB_NAME="$( jq -r .db.database "$SNAPSHOT_CONFIG" )"
+LOG_LOCATION="$( jq -r .logFileName "$SNAPSHOT_CONFIG" )"
 
 LISK_CONFIG="config.json"
-PM2_CONFIG="$(pwd)/etc/pm2-snapshot.json"
-SOURCE_DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
+PM2_CONFIG="$PWD/etc/pm2-snapshot.json"
+SOURCE_DB_NAME="$( jq -r .db.database "$LISK_CONFIG" )"
 
-BACKUP_LOCATION="$(pwd)/backups"
+BACKUP_LOCATION="$PWD/backups"
 
 DAYS_TO_KEEP="7"
 
@@ -52,7 +52,7 @@ PGSQL_VACUUM_DELAY="3"
 STALL_THRESHOLD_PREVIOUS="20"
 STALL_THRESHOLD_CURRENT="10"
 
-LOCK_LOCATION="$(pwd)/locks"
+LOCK_LOCATION="$PWD/locks"
 LOCK_FILE="$LOCK_LOCATION/snapshot.lock"
 
 ### Function(s) ######################################################
@@ -64,8 +64,8 @@ parse_option() {
 			t)
 				if [ -f "$OPTARG" ]; then
 					SNAPSHOT_CONFIG="$OPTARG"
-					TARGET_DB_NAME="$(grep "database" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
-					LOG_LOCATION="$(grep "logFileName" "$SNAPSHOT_CONFIG" | cut -f 4 -d '"')"
+					TARGET_DB_NAME="$( jq -r .db.database "$SNAPSHOT_CONFIG" )"
+					LOG_LOCATION="$( jq -r .logFileName "$SNAPSHOT_CONFIG" )"
 				else
 					echo "$(now) config.json for snapshot not found. Please verify the file exists and try again."
 					exit 1
@@ -74,7 +74,7 @@ parse_option() {
 			s)
 				if [ -f "$OPTARG" ]; then
 					LISK_CONFIG="$OPTARG"
-					SOURCE_DB_NAME="$(grep "database" "$LISK_CONFIG" | cut -f 4 -d '"')"
+					SOURCE_DB_NAME="$( jq -r .db.database "$LISK_CONFIG" )"
 				else
 					echo "$(now) config.json not found. Please verify the file exists and try again."
 					exit 1
@@ -174,7 +174,8 @@ echo -e "\\n$(now) Beginning snapshot verification process"
 bash lisk.sh start -p "$PM2_CONFIG"
 
 MINUTES=0
-until tail -n10 "$LOG_LOCATION" | (grep -q "Snapshot finished"); do
+
+while [[ $(pm2 jlist | jq --raw-output '.[] | select(.name == "lisk.snapshot") | .pm2_env.status') == "online" ]]; do
 	sleep 60
 
 	if [ "$( stat --format=%Y "$LOG_LOCATION" )" -le $(( $(date +%s) - ( STALL_THRESHOLD_CURRENT * 60 ) )) ]; then
@@ -198,9 +199,6 @@ echo -e "\\n$(now) Snapshot verification process completed"
 
 echo -e "\\n$(now) Deleting data on table 'peers' of database '$TARGET_DB_NAME'"
 psql -d "$TARGET_DB_NAME" -c 'delete from peers;' &> /dev/null
-
-echo -e "\\n$(now) Executing vacuum on database '$TARGET_DB_NAME' before dumping"
-vacuumdb --analyze --full "$TARGET_DB_NAME" &> /dev/null
 
 echo -e "\\n$(now) Dumping snapshot database to gzip file"
 HEIGHT="$(psql -d lisk_snapshot -t -c 'select height from blocks order by height desc limit 1;' | xargs)"

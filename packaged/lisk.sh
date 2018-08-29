@@ -31,15 +31,15 @@ if [ "$USER" == "root" ]; then
 	exit 1
 fi
 
-# shellcheck disable=SC1090
+# shellcheck source=shared.sh
 . "$(pwd)/shared.sh"
-# shellcheck disable=SC1090
+# shellcheck source=env.sh
 . "$(pwd)/env.sh"
 
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
-PM2_APP="$(grep "name" "$PM2_CONFIG" | cut -d'"' -f4)" >> /dev/null
-LISK_CONFIG="$(grep "config" "$PM2_CONFIG" | cut -d'"' -f4 | cut -d' ' -f2)" >> /dev/null
+PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
+LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
 LISK_LOGS="$(jq -r '.logFileName' "$LISK_CONFIG")"
 
 LOGS_DIR="$(pwd)/logs"
@@ -48,7 +48,7 @@ LOGS_DIR="$(pwd)/logs"
 config() {
 	DB_NAME="$(jq -r '.db.database' "$LISK_CONFIG")"
 	DB_PORT="$(jq -r '.db.port' "$LISK_CONFIG")"
-	DB_USER="$USER"
+	DB_USER="$(jq -r '.db.user' "$LISK_CONFIG")"
 	DB_PASS="password"
 	DB_DATA="$(pwd)/pgsql/data"
 	DB_LOG_FILE="$LOGS_DIR/pgsql.log"
@@ -81,14 +81,21 @@ blockheight() {
 }
 
 network() {
-	# shellcheck disable=SC2143
-	if [ "$(grep "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba" "$LISK_CONFIG" )" ];then
-		NETWORK="test"
-	elif [ "$(grep "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511" "$LISK_CONFIG")" ];then
-		NETWORK="main"
-	else
-		NETWORK="local"
-	fi
+	NETHASH=$( jq -r .nethash "$LISK_CONFIG" )
+	case $NETHASH in
+		"ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511")
+			NETWORK="main"
+			;;
+		"da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba")
+			NETWORK="test"
+			;;
+		"ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c")
+			NETWORK="beta"
+			;;
+		*)
+			NETWORK="local"
+			;;
+	esac
 	echo -e 'Lisk configured for '"$NETWORK"' network\n' >> "$SH_LOG_FILE" 2>&1
 }
 
@@ -170,7 +177,7 @@ autostart_cron() {
 EOF
 	)
 
-	if ! printf "%s\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
+	if ! printf "%s\\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
 		echo "X Failed to update crontab."
 		return 1
 	else
@@ -198,7 +205,7 @@ start_postgresql() {
 	if pgrep -x "postgres" > /dev/null 2>&1; then
 		echo "√ Postgresql is running."
 	else
-		if ! pg_ctl -D "$DB_DATA" -l "$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
+		if ! pg_ctl -w -D "$DB_DATA" -l "$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
 			echo "X Failed to start Postgresql."
 			exit 1
 		else
@@ -331,8 +338,8 @@ check_pid() {
 	fi
 }
 
-lisky() {
-	node "$(pwd)/bin/lisky"
+lisk() {
+	node "$(pwd)/bin/lisk"
 }
 
 tail_logs() {
@@ -340,9 +347,9 @@ tail_logs() {
 }
 
 help() {
-	echo -e "\nCommand Options for Lisk.sh"
-	echo -e "\nAll options may be passed [-p <PM2-config.json>]"
-	echo -e "\nstart_node                            Starts a Nodejs process for Lisk"
+	echo -e "\\nCommand Options for Lisk.sh"
+	echo -e "\\nAll options may be passed [-p <PM2-config.json>]"
+	echo -e "\\nstart_node                         Starts a Nodejs process for Lisk"
 	echo -e "start                                 Starts the Nodejs process and PostgreSQL Database for Lisk"
 	echo -e "stop_node                             Stops a Nodejs process for Lisk"
 	echo -e "stop                                  Stop the Nodejs process and PostgreSQL Database for Lisk"
@@ -351,7 +358,7 @@ help() {
 	echo -e "start_db                              Starts the PostgreSQL database"
 	echo -e "stop_db                               Stops the PostgreSQL database"
 	echo -e "coldstart                             Creates the PostgreSQL database and configures config.json for Lisk"
-	echo -e "lisky                                 Launches Lisky"
+	echo -e "lisk                                  Launches Lisk-commander"
 	echo -e "logs                                  Displays and tails logs for Lisk"
 	echo -e "status                                Displays the status of the PID associated with Lisk"
 	echo -e "help                                  Displays this message"
@@ -458,4 +465,4 @@ case $1 in
 esac
 
 # Required to clean up colour characters that don't translate well from tee
-sed -i -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" "$SH_LOG_FILE"
+sed -i -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' "$SH_LOG_FILE"

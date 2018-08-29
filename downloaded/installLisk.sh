@@ -42,44 +42,22 @@ prereq_checks() {
 	echo -e "Checking prerequisites:"
 
 	if [ -x "$(command -v curl)" ]; then
-		echo -e "curl is installed.\t\t\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\ncurl is not installed.\t\t\t\t\t$(tput setaf 1)Failed$(tput sgr0)"
-			echo -e "\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
 	if [ -x "$(command -v tar)" ]; then
-		echo -e "Tar is installed.\t\t\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
+		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
-		echo -e "\ntar is not installed.\t\t\t\t\t$(tput setaf 1)Failed$(tput sgr0)"
-			echo -e "\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
+		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
 		exit 2
 	fi
 
-	if [ -x "$(command -v wget)" ]; then
-		echo -e "Wget is installed.\t\t\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
-	else
-		echo -e "\nWget is not installed.\t\t\t\t\t$(tput setaf 1)Failed$(tput sgr0)"
-		echo -e "\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
-		exit 2
-	fi
-
-	if sudo -n true 2>/dev/null; then
-		echo -e "Sudo is installed and authenticated.\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
-	else
-		echo -e "Sudo is installed.\t\t\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
-		echo "Please provide sudo password for validation"
-		if sudo -Sv -p ''; then
-			echo -e "Sudo authenticated.\t\t\t\t\t$(tput setaf 2)Passed$(tput sgr0)"
-		else
-			echo -e "Unable to authenticate Sudo.\t\t\t\t\t$(tput setaf 1)Failed$(tput sgr0)"
-			echo -e "\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
-			exit 2
-		fi
-	fi
-
-	echo -e "$(tput setaf 2)All preqrequisites passed!$(tput sgr0)"
+	echo -e "All preqrequisites passed!"
 }
 
 # Adding LC_ALL LANG and LANGUAGE to user profile
@@ -101,7 +79,7 @@ user_prompts() {
 
 	[ "$RELEASE" ] || read -r -p "Would you like to install the Main or Test Client? (Default $DEFAULT_RELEASE): " RELEASE
 	RELEASE=${RELEASE:-$DEFAULT_RELEASE}
-	if [[ ! "$RELEASE" == "main" && ! "$RELEASE" == "test" && ! "$RELEASE" == "dev" ]]; then
+	if [[ ! "$RELEASE" == "main" && ! "$RELEASE" == "test" && ! "$RELEASE" == "dev" && ! "$RELEASE" == "beta" ]]; then
 		echo "$RELEASE is not valid, please check and re-execute"
 		exit 2;
 	fi
@@ -115,87 +93,21 @@ user_prompts() {
 	LISK_INSTALL="$LISK_LOCATION"'/lisk-'"$RELEASE"
 }
 
-ntp_checks() {
-	# Install NTP or Chrony for Time Management - Physical Machines only
-	if [[ "$(uname)" == "Linux" ]]; then
-		if [[ -f "/etc/debian_version" &&  ! -f "/proc/user_beancounters" ]]; then
-			if sudo pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				echo "X NTP is not running"
-				[ "$INSTALL_NTP" ] || read -r -n 1 -p "Would like to install NTP? (y/n): " REPLY
-				if [[ "$INSTALL_NTP" || "$REPLY" =~ ^[Yy]$ ]]; then
-					echo -e "\nInstalling NTP, please provide sudo password.\n"
-					sudo apt-get install ntp ntpdate -yyq
-					sudo service ntp stop
-					sudo ntpdate pool.ntp.org
-					sudo service ntp start
-					if sudo pgrep -x "ntpd" > /dev/null; then
-						echo "√ NTP is running"
-					else
-						echo -e "\nLisk requires NTP running on Debian based systems. Please check /etc/ntp.conf and correct any issues."
-						exit 0
-					fi
-				else
-					echo -e "\nLisk requires NTP on Debian based systems, exiting."
-					exit 0
-				fi
-			fi # End Debian Checks
-		elif [[ -f "/etc/redhat-RELEASE" &&  ! -f "/proc/user_beancounters" ]]; then
-			if sudo pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				if sudo pgrep -x "chronyd" > /dev/null; then
-					echo "√ Chrony is running"
-				else
-					echo "X NTP and Chrony are not running"
-					[ "$INSTALL_NTP" ] || read -r -n 1 -p "Would like to install NTP? (y/n): " REPLY
-					if [[ "$INSTALL_NTP" || "$REPLY" =~ ^[Yy]$ ]]; then
-						echo -e "\nInstalling NTP, please provide sudo password.\n"
-						sudo yum -yq install ntp ntpdate ntp-doc
-						sudo chkconfig ntpd on
-						sudo service ntpd stop
-						sudo ntpdate pool.ntp.org
-						sudo service ntpd start
-						if pgrep -x "ntpd" > /dev/null; then
-							echo "√ NTP is running"
-							else
-							echo -e "\nLisk requires NTP running on Debian based systems. Please check /etc/ntp.conf and correct any issues."
-							exit 0
-						fi
-					else
-						echo -e "\nLisk requires NTP or Chrony on RHEL based systems, exiting."
-						exit 0
-					fi
-				fi
-			fi # End Redhat Checks
-		elif [[ -f "/proc/user_beancounters" ]]; then
-			echo "_ Running OpenVZ VM, NTP and Chrony are not required"
-		fi
-	elif [[ "$(uname)" == "Darwin" ]]; then
-		if pgrep -x "ntpd" > /dev/null; then
-			echo "√ NTP is running"
-		else
-			sudo launchctl load /System/Library/LaunchDaemons/org.ntp.ntpd.plist
-			sleep 1
-			if pgrep -x "ntpd" > /dev/null; then
-				echo "√ NTP is running"
-			else
-				echo -e "\nNTP did not start, Please verify its configured on your system"
-				exit 0
-			fi
-		fi  # End Darwin Checks
-	fi # End NTP Checks
-}
-
 download_lisk() {
+	if [[ "$LOCAL_TAR" ]]; then
+		echo -e "\\nUsing local binary $LOCAL_TAR"
+		LISK_VERSION="$LOCAL_TAR"
+		LISK_DIR=${LISK_VERSION%.tar.gz}
+		return
+	fi
+
 	LISK_VERSION=lisk-$UNAME.tar.gz
 
-	LISK_DIR=$(echo "$LISK_VERSION" | cut -d'.' -f1)
+	LISK_DIR=${LISK_VERSION%.tar.gz}
 
 	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256 &> /dev/null
 
-	echo -e "\nDownloading current Lisk binaries: ""$LISK_VERSION"
+	echo -e "\\nDownloading current Lisk binaries: ""$LISK_VERSION"
 
 	curl --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION"
 
@@ -208,9 +120,9 @@ download_lisk() {
 	fi
 
 	if [[ "$SHA256" == "OK" ]]; then
-		echo -e "\nChecksum Passed!"
+		echo -e "\\nChecksum Passed!"
 	else
-		echo -e "\nChecksum Failed, aborting installation"
+		echo -e "\\nChecksum Failed, aborting installation"
 		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
 		exit 0
 	fi
@@ -223,14 +135,17 @@ install_lisk() {
 
 	mv "$LISK_LOCATION/$LISK_DIR" "$LISK_INSTALL"
 
-	echo -e "\nCleaning up downloaded files"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	# if user is specifying a tarball, we probably don't want to delete it
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nCleaning up downloaded files"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 }
 
 configure_lisk() {
 	cd "$LISK_INSTALL" || exit 2
 
-	echo -e "\nColdstarting Lisk for the first time"
+	echo -e "\\nColdstarting Lisk for the first time"
 	if ! bash lisk.sh coldstart -f "$LISK_INSTALL"/var/db/blockchain.db.gz; then
 		echo "Installation failed. Cleaning up..."
 		cleanup_installation
@@ -238,50 +153,52 @@ configure_lisk() {
 
 	sleep 5 # Allow the DApp password to generate and write back to the config.json
 
-	echo -e "\nStopping Lisk to perform database tuning"
+	echo -e "\\nStopping Lisk to perform database tuning"
 	bash lisk.sh stop
 
-	echo -e "\nExecuting database tuning operation"
+	echo -e "\\nExecuting database tuning operation"
 	bash tune.sh
 }
 
 cleanup_installation() {
-	echo -e "\nStopping Lisk components before cleanup"
+	echo -e "\\nStopping Lisk components before cleanup"
 	bash lisk.sh stop
 
 	cd ../ || exit 2
 
-	echo -e "\nRemoving Lisk directory and installation files"
-	rm -rf "$LISK_INSTALL"
-	rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	if [[ ! $LOCAL_TAR ]]; then
+		echo -e "\\nRemoving Lisk directory and installation files"
+		rm -rf "$LISK_INSTALL"
+		rm -f "$LISK_VERSION" "$LISK_VERSION".SHA256
+	fi
 
 	if [[ "$FRESH_INSTALL" == false ]]; then
-		echo -e "\Restoring old Lisk installation"
+		echo -e "Restoring old Lisk installation"
 		cp "$LISK_BACKUP" "$LISK_INSTALL"
 		bash "$LISK_INSTALL/lisk.sh" start
 	fi
 
-	echo -e "\nPlease check installLisk.out for more details on the failure. See here for troubleshooting steps: https://docs.lisk.io/docs/core-troubleshooting"
-	echo -e "\nIf no steps resolve your issue, please log an issue at: https://github.com/LiskHQ/lisk-build/issues"
+	echo -e "\\nPlease check installLisk.out for more details on the failure. See here for troubleshooting steps: https://docs.lisk.io/docs/core-troubleshooting"
+	echo -e "\\nIf no steps resolve your issue, please log an issue at: https://github.com/LiskHQ/lisk-build/issues"
 	exit 1
 }
 
 backup_lisk() {
-	echo -e "\nStopping Lisk to perform a backup"
+	echo -e "\\nStopping Lisk to perform a backup"
 	cd "$LISK_INSTALL" || exit 2
 	bash lisk.sh stop
 
-	echo -e "\nCleaning up PM2"
+	echo -e "\\nCleaning up PM2"
 	bash lisk.sh cleanup
 
-	echo -e "\nBacking up existing Lisk Folder"
+	echo -e "\\nBacking up existing Lisk Folder"
 
 	LISK_BACKUP="$LISK_LOCATION"'/backup/lisk-'"$RELEASE"
 	LISK_OLD_PG="$LISK_BACKUP"'/pgsql/'
 	LISK_NEW_PG="$LISK_INSTALL"'/pgsql/'
 
 	if [[ -d "$LISK_BACKUP" ]]; then
-		echo -e "\nRemoving old backup folder"
+		echo -e "\\nRemoving old backup folder"
 		rm -rf "$LISK_BACKUP" &> /dev/null
 	fi
 
@@ -293,44 +210,40 @@ backup_lisk() {
 start_lisk() { # Parse the various startup flags
 	if [[ "$REBUILD" == true ]]; then
 		if [[ "$URL" ]]; then
-			echo -e "\nStarting Lisk with specified snapshot"
+			echo -e "\\nStarting Lisk with specified snapshot"
 			cd "$LISK_INSTALL" || exit 2
 			bash lisk.sh rebuild -u "$URL"
 		else
-			echo -e "\nStarting Lisk with official snapshot"
+			echo -e "\\nStarting Lisk with official snapshot"
 			cd "$LISK_INSTALL" || exit 2
 			bash lisk.sh rebuild
 		fi
 	elif [[ "$FRESH_INSTALL" == true && "$SYNC" == "no" ]]; then
-		echo -e "\nStarting Lisk with official snapshot"
+		echo -e "\\nStarting Lisk with official snapshot"
 		cd "$LISK_INSTALL" || exit 2
 		bash lisk.sh rebuild
 	else
 		if [[ "$SYNC" == "yes" ]]; then
-				echo -e "\nStarting Lisk from genesis"
-				bash lisk.sh rebuild -f var/db/blockchain.db.gz
-		 else
-			 echo -e "\nStarting Lisk with current blockchain"
-			 cd "$LISK_INSTALL" || exit 2
-			 bash lisk.sh start
+			echo -e "\\nStarting Lisk from genesis"
+			bash lisk.sh rebuild -f var/db/blockchain.db.gz
+		else
+			echo -e "\\nStarting Lisk with current blockchain"
+			cd "$LISK_INSTALL" || exit 2
+			bash lisk.sh start
 		fi
 	fi
 }
 
 upgrade_lisk() {
-	echo -e "\nRestoring Database to new Lisk Install"
+	echo -e "\\nRestoring Database to new Lisk Install"
 	mkdir -m700 "$LISK_INSTALL"/pgsql/data
 
 	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 9.6".* ]]; then
-		echo -e "\nUpgrading database from PostgreSQL 9.5 to PostgreSQL 9.6"
-		# Disable SC1090 - Its unable to resolve the file but we know its there.
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
-		# shellcheck disable=SC1090
+		# shellcheck source=../packaged/env.sh
 		. "$LISK_INSTALL"/env.sh
-		# shellcheck disable=SC2129
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &> $LOG_FILE
-		# shellcheck disable=SC2129
 		"$LISK_NEW_PG"/bin/pg_upgrade -b "$LISK_OLD_PG"/bin -B "$LISK_NEW_PG"/bin -d "$LISK_OLD_PG"/data -D "$LISK_NEW_PG"/data &> $LOG_FILE
 		bash "$LISK_INSTALL"/lisk.sh start_db &> $LOG_FILE
 		bash "$LISK_INSTALL"/analyze_new_cluster.sh &> $LOG_FILE
@@ -339,56 +252,61 @@ upgrade_lisk() {
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
 
-	echo -e "\nCopying config.json entries from previous installation"
-	"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
-}
-
-log_rotate() {
-	if [[ "$(uname)" == "Linux" ]]; then
-		echo -e "\nConfiguring Logrotate for Lisk"
-		sudo bash -c "cat > /etc/logrotate.d/lisk-$RELEASE-log << EOF_lisk-logrotate
-		$LISK_LOCATION/lisk-$RELEASE/logs/*.log {
-		create 666 $USER $USER
-		weekly
-		size=100M
-		dateext
-		copytruncate
-		missingok
-		rotate 2
-		compress
-		delaycompress
-		notifempty
-		}
-EOF_lisk-logrotate" &> /dev/null
+	SOURCE_VERSION=$( "$LISK_INSTALL/bin/jq" --raw-output .version "$LISK_LOCATION/backup/lisk-$RELEASE/config.json" )
+	TARGET_VERSION=$( "$LISK_INSTALL/bin/jq" --raw-output .version "$LISK_INSTALL/config.json" )
+	if [ "$SOURCE_VERSION" != "$TARGET_VERSION" ]; then
+		echo -e "\\nCopying config.json entries from previous installation"
+		# If 0.9.x version
+		if [[ -f "${LISK_INSTALL}/updateConfig.js" ]]; then
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/updateConfig.js -o "$LISK_BACKUP"/config.json -n "$LISK_INSTALL"/config.json
+		# If latest version
+		elif [[ -z "${LISK_MASTER_PASSWORD}" ]]; then
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json
+		else
+			"$LISK_INSTALL"/bin/node "$LISK_INSTALL"/scripts/update_config.js "$LISK_BACKUP"/config.json "$LISK_INSTALL"/config.json --password "$LISK_MASTER_PASSWORD"
 		fi
+	fi
+
+	if [[ "$CLEAN_DB" = "yes" ]]; then
+		echo -e "\\nCleaning up database"
+		( cd "$LISK_INSTALL" || exit 2; bash lisk.sh start_db ) || exit 2
+		sleep 5
+		LISK_DATABASE=$( "$LISK_INSTALL/bin/jq" --raw-output .db.database "$LISK_INSTALL/config.json" )
+		PATH="$LISK_INSTALL/pgsql/bin:$PATH" LD_LIBRARY_PATH="$LISK_INSTALL/pgsql/lib:$LISK_INSTALL/lib" psql --dbname="$LISK_DATABASE" --command='DELETE FROM peers;' >/dev/null
+	fi
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <directory] [-r <main|test|dev>] [-n] [-h [-u <URL>] ] "
-	echo "install         -- install Lisk"
-	echo "upgrade         -- upgrade Lisk"
-	echo " -d <DIRECTORY> -- install location"
-	echo " -r <RELEASE>   -- choose main or test"
-	echo " -n             -- install ntp if not installed"
-	echo " -h             -- rebuild instead of copying database"
-	echo " -u <URL>       -- URL to rebuild from - Requires -h"
-	echo " -0 <yes|no>    -- Forces sync from 0"
+	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
+	echo "install             -- install Lisk"
+	echo "upgrade             -- upgrade Lisk"
+	echo " -d <DIRECTORY>     -- install location"
+	echo " -f <FILE>          -- use a local tarball to install"
+	echo " -r <main|test|dev> -- choose network (default: main)"
+	echo " -h                 -- rebuild instead of copying database"
+	echo " -u <URL>           -- URL to rebuild from - Requires -h"
+	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
+	echo " -c                 -- clean database after upgrade"
 }
 
 parse_option() {
-	OPTIND=2
-	while getopts :d:r:u:hn0: OPT; do
-		 case "$OPT" in
-			 d) LISK_LOCATION="$OPTARG" ;;
-			 r) RELEASE="$OPTARG" ;;
-			 n) INSTALL_NTP=1 ;;
-			 h) REBUILD=true ;;
-			 u) URL="$OPTARG" ;;
-			 0) SYNC="$OPTARG" ;;
-		 esac
-	 done
+	CLEAN_DB="no"
 
- if [ "$SYNC" ]; then
+	OPTIND=2
+	while getopts :d:f:r:u:ch0: OPT; do
+		# shellcheck disable=SC2220
+		case "$OPT" in
+			d) LISK_LOCATION="$OPTARG" ;;
+			f) LOCAL_TAR="$OPTARG" ;;
+			r) RELEASE="$OPTARG" ;;
+			h) REBUILD=true ;;
+			u) URL="$OPTARG" ;;
+			0) SYNC="$OPTARG" ;;
+			c) CLEAN_DB="yes" ;;
+		esac
+	done
+
+	if [ "$SYNC" ]; then
 		if [[ "$SYNC" != "no" && "$SYNC" != "yes" ]]; then
 			echo "-0 <yes|no>"
 			usage
@@ -397,8 +315,8 @@ parse_option() {
 	fi
 
 	if [ "$RELEASE" ]; then
-		if [[ "$RELEASE" != test && "$RELEASE" != "main" && "$RELEASE" != "dev" ]]; then
-			echo "-r <test|main|dev>"
+		if [[ "$RELEASE" != test && "$RELEASE" != "main" && "$RELEASE" != "dev" && "$RELEASE" != "beta" ]]; then
+			echo "-r <test|main|dev|beta>"
 			usage
 			exit 1
 		fi
@@ -411,11 +329,9 @@ case "$1" in
 	parse_option "$@"
 	prereq_checks
 	user_prompts
-	ntp_checks
 	download_lisk
 	install_lisk
 	configure_lisk
-	log_rotate
 	start_lisk
 	;;
 "upgrade")
