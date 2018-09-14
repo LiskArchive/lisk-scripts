@@ -238,7 +238,7 @@ upgrade_lisk() {
 	echo -e "\\nRestoring Database to new Lisk Install"
 	mkdir -m700 "$LISK_INSTALL"/pgsql/data
 
-	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 9.6".* ]]; then
+	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 10".* ]]; then
 		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
 		# shellcheck source=../packaged/env.sh
