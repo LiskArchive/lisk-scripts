@@ -101,7 +101,11 @@ download_lisk() {
 		return
 	fi
 
-	LISK_VERSION=lisk-$UNAME.tar.gz
+	if [[ ! $LISK_VERSION_NUMBER ]]; then
+		LISK_VERSION_NUMBER=$(curl -s "https://downloads.lisk.io/lisk/$RELEASE/" | grep '^<a .*>.*/<' | sed 's/^.*"\(.*\)\/".*$/\1/' | sort -Vr | head -n 1)
+	fi
+
+	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-$UNAME.tar.gz
 
 	LISK_DIR=${LISK_VERSION%.tar.gz}
 
@@ -109,9 +113,9 @@ download_lisk() {
 
 	echo -e "\\nDownloading current Lisk binaries: ""$LISK_VERSION"
 
-	curl --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION"
+	curl --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION"
 
-	curl -s "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION.SHA256" -o "$LISK_VERSION".SHA256
+	curl -s "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" -o "$LISK_VERSION".SHA256
 
 	if [[ "$(uname)" == "Linux" ]]; then
 		SHA256=$(sha256sum -c "$LISK_VERSION".SHA256 | awk '{print $2}')
@@ -277,23 +281,24 @@ upgrade_lisk() {
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c]"
-	echo "install             -- install Lisk"
-	echo "upgrade             -- upgrade Lisk"
-	echo " -d <DIRECTORY>     -- install location"
-	echo " -f <FILE>          -- use a local tarball to install"
-	echo " -r <main|test|dev> -- choose network (default: main)"
-	echo " -h                 -- rebuild instead of copying database"
-	echo " -u <URL>           -- URL to rebuild from - Requires -h"
-	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
-	echo " -c                 -- clean database after upgrade"
+	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|dev>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-c] [-s <LISK_VERSION_NUMBER>]"
+	echo "install                    -- install Lisk"
+	echo "upgrade                    -- upgrade Lisk"
+	echo " -d <DIRECTORY>            -- install location"
+	echo " -f <FILE>                 -- use a local tarball to install"
+	echo " -r <main|test|dev>        -- choose network (default: main)"
+	echo " -h                        -- rebuild instead of copying database"
+	echo " -u <URL>                  -- URL to rebuild from - Requires -h"
+	echo " -0 <yes|no>               -- force sync from 0 (default: no)"
+	echo " -c                        -- clean database after upgrade"
+	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2"
 }
 
 parse_option() {
 	CLEAN_DB="no"
 
 	OPTIND=2
-	while getopts :d:f:r:u:ch0: OPT; do
+	while getopts :d:f:r:u:s:ch0: OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
@@ -303,6 +308,7 @@ parse_option() {
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			c) CLEAN_DB="yes" ;;
+			s) LISK_VERSION_NUMBER="$OPTARG" ;;
 		esac
 	done
 
