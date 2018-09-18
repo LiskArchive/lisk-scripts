@@ -102,7 +102,11 @@ download_lisk() {
 	fi
 
 	if [[ ! $LISK_VERSION_NUMBER ]]; then
-		LISK_VERSION_NUMBER=$(curl -s "https://downloads.lisk.io/lisk/$RELEASE/latest.txt")
+		LISK_VERSION_NUMBER=$(curl -sf "https://downloads.lisk.io/lisk/$RELEASE/latest.txt" || echo error)
+		if [[ $LISK_VERSION_NUMBER == "error" ]] ; then
+			echo "Error: Unable to fetch latest version. Aborting."
+			exit 1
+		fi
 	fi
 
 	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-$UNAME.tar.gz
@@ -113,9 +117,15 @@ download_lisk() {
 
 	echo -e "\\nDownloading current Lisk binaries: ""$LISK_VERSION"
 
-	curl --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION"
+	if [[ ! curl -f --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION" ]] ; then
+		echo "Error downloading $LISK_VERSION. Aborting."
+		exit 1
+	fi
 
-	curl -s "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" -o "$LISK_VERSION".SHA256
+	if [[ ! curl -f -s "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" -o "$LISK_VERSION".SHA256 ]] ; then
+		echo "Error downloading $LISK_VERSION.SHA256. Aborting."
+		exit 1
+	fi
 
 	if [[ "$(uname)" == "Linux" ]]; then
 		SHA256=$(sha256sum -c "$LISK_VERSION".SHA256 | awk '{print $2}')
@@ -291,7 +301,7 @@ usage() {
 	echo " -u <URL>                  -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>               -- force sync from 0 (default: no)"
 	echo " -c                        -- clean database after upgrade"
-	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2"
+	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2. By default, the latest version will be installed"
 }
 
 parse_option() {
