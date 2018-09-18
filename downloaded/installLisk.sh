@@ -102,7 +102,7 @@ download_lisk() {
 	fi
 
 	if [[ ! $LISK_VERSION_NUMBER ]]; then
-		LISK_VERSION_NUMBER=$(curl -s "https://downloads.lisk.io/lisk/$RELEASE/" | grep '^<a .*>.*/<' | sed 's/^.*"\(.*\)\/".*$/\1/' | sort -Vr | head -n 1)
+		LISK_VERSION_NUMBER=$(curl -s "https://downloads.lisk.io/lisk/$RELEASE/latest.txt")
 	fi
 
 	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-$UNAME.tar.gz
