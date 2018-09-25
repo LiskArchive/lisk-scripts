@@ -31,11 +31,10 @@ if [ "$USER" == "root" ]; then
 	exit 1
 fi
 
-# shellcheck source=shared.sh
-. "$(pwd)/shared.sh"
 # shellcheck source=env.sh
 . "$(pwd)/env.sh"
-
+# shellcheck source=shared.sh
+. "$(pwd)/shared.sh"
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
 PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
