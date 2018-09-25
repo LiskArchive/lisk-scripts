@@ -17,9 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-# Default value of LISK_CUSTOM_CONFIG
-LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG")
-
 bail() {
 	echo "Error executing command, exiting"
 	exit 1
@@ -60,6 +57,9 @@ function get_lisk_custom_config() {
 	fi
 	echo "$LISK_CUSTOM_CONFIG"
 }
+
+# Default value of LISK_CUSTOM_CONFIG
+LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG")
 
 function get_config() {
 # use first of: custom configuration file, network configuration file or default configuration file
