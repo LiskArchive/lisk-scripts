@@ -57,3 +57,16 @@ function get_lisk_custom_config() {
 	fi
 	echo "$LISK_CUSTOM_CONFIG"
 }
+
+function get_config() {
+# use first of: custom configuration file, network configuration file or default configuration file
+	local KEY=$1
+	VALUE=$( jq --raw-output "$KEY" "$LISK_CUSTOM_CONFIG" )
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/$LISK_NETWORK/config.json" )
+	fi
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/default/config.json" )
+	fi
+	echo "$VALUE"
+}

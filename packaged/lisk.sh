@@ -41,19 +41,6 @@ PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
 PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
 LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG" )
 
-function get_config() {
-# use first of: custom configuration file, network configuration file or default configuration file
-	local KEY=$1
-	VALUE=$( jq --raw-output "$KEY" "$LISK_CUSTOM_CONFIG" )
-	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
-		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/$LISK_NETWORK/config.json" )
-	fi
-	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
-		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/default/config.json" )
-	fi
-	echo "$VALUE"
-}
-
 LISK_LOGS=$( get_config '.logFileName' )
 
 LOGS_DIR="$(pwd)/logs"
