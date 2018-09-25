@@ -39,7 +39,6 @@ fi
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
 PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
-LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG" )
 
 LISK_LOGS=$( get_config '.logFileName' )
 

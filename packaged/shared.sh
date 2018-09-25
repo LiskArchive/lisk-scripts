@@ -17,6 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
+# Default value of LISK_CUSTOM_CONFIG
+LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG")
+
 bail() {
 	echo "Error executing command, exiting"
 	exit 1

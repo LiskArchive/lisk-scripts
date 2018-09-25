@@ -35,7 +35,6 @@ SNAPSHOT_CONFIG="$PWD/etc/snapshot.json"
 TARGET_DB_NAME="$( jq -r .db.database "$SNAPSHOT_CONFIG" )"
 LOG_LOCATION="$( jq -r .logFileName "$SNAPSHOT_CONFIG" )"
 
-LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$(pwd)/etc/pm2-lisk.json" )
 PM2_CONFIG="$PWD/etc/pm2-snapshot.json"
 SOURCE_DB_NAME=$( get_config '.db.database' )
 
