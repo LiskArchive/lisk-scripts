@@ -17,29 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-bail() {
-	echo "Error executing command, exiting"
-	exit 1
-}
-
-exec_cmd_nobail() {
-	echo "+ $1"
-	bash -c "$1"
-}
-
-exec_cmd() {
-	exec_cmd_nobail "$1" || bail
-}
-
-check_cmds() {
-	local cmds=("${!1}")
-	for i in "${cmds[@]}"; do
-		command -v "$i" > /dev/null 2>&1 || {
-			echo "Error: $i command was not found. Aborting." >&2; exit 1;
-		}
-	done
-}
-
 function get_lisk_app_name() {
 	local PM2_CONFIG=$1
 	PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
