@@ -38,10 +38,6 @@ This repository contains various `bash` and `node` scripts used to install and m
 
     Optimizes the `postgres` configuration according to the memory of the host machine.
 
-  - `updateConfig.js`
-
-    Migrates the configuration of a Lisk installation between package upgrades.
-
 ## Authors
 
 - https://github.com/karmacoma
