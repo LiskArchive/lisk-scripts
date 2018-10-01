@@ -239,10 +239,10 @@ upgrade_lisk() {
 	mkdir -m700 "$LISK_INSTALL"/pgsql/data
 
 	if [[ "$("$LISK_OLD_PG"/bin/postgres -V)" != "postgres (PostgreSQL) 10".* ]]; then
-		# shellcheck source=../packaged/shared.sh
-		. "$LISK_INSTALL"/shared.sh
 		# shellcheck source=../packaged/env.sh
 		. "$LISK_INSTALL"/env.sh
+		# shellcheck source=../packaged/shared.sh
+		. "$LISK_INSTALL"/shared.sh
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &> $LOG_FILE
 		"$LISK_NEW_PG"/bin/pg_upgrade -b "$LISK_OLD_PG"/bin -B "$LISK_NEW_PG"/bin -d "$LISK_OLD_PG"/data -D "$LISK_NEW_PG"/data &> $LOG_FILE
 		bash "$LISK_INSTALL"/lisk.sh start_db &> $LOG_FILE
