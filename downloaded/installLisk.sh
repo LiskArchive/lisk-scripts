@@ -244,10 +244,15 @@ upgrade_lisk() {
 		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &>>$LOG_FILE
-		LD_LIBRARY_PATH="$LISK_OLD_PG/lib:$LD_LIBRARY_PATH" "$LISK_NEW_PG/bin/pg_upgrade" -b "$LISK_OLD_PG/bin" -B "$LISK_NEW_PG/bin" -d "$LISK_OLD_PG/data" -D "$LISK_NEW_PG/data" &>>$LOG_FILE
-		bash "$LISK_INSTALL"/lisk.sh start_db &>>$LOG_FILE
-		bash "$LISK_INSTALL"/analyze_new_cluster.sh &>>$LOG_FILE
-		rm -f "$LISK_INSTALL"/*cluster*
+		ABS_LOG_FILE="$( pwd )/$LOG_FILE"
+		TEMP=$( mktemp -d )
+		pushd "$TEMP" || exit 2
+		LD_LIBRARY_PATH="$LISK_OLD_PG/lib:$LD_LIBRARY_PATH" "$LISK_NEW_PG/bin/pg_upgrade" -b "$LISK_OLD_PG/bin" -B "$LISK_NEW_PG/bin" -d "$LISK_OLD_PG/data" -D "$LISK_NEW_PG/data" &>>"$ABS_LOG_FILE"
+		popd || exit 2
+		bash "$LISK_INSTALL/lisk.sh" start_db &>>$LOG_FILE
+		bash "$TEMP/analyze_new_cluster.sh" &>>$LOG_FILE
+		rm -f "$TEMP/"{analyze_new,delete_old}_cluster.sh
+		rmdir "$TEMP"
 	else
 		cp -rf "$LISK_OLD_PG"/data/* "$LISK_NEW_PG"/data/
 	fi
