@@ -45,7 +45,7 @@ prereq_checks() {
 		echo -e "curl is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ncurl is not installed.\\t\\t\\t\\t\\tFailed"
-		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://lisk.io/documentation/lisk-core/setup/pre-install/binary"
 		exit 2
 	fi
 
@@ -53,7 +53,15 @@ prereq_checks() {
 		echo -e "Tar is installed.\\t\\t\\t\\t\\tPassed"
 	else
 		echo -e "\\ntar is not installed.\\t\\t\\t\\t\\tFailed"
-		echo -e "\\nPlease follow the Prerequisites at: https://docs.lisk.io/docs/core-pre-installation-binary"
+		echo -e "\\nPlease follow the Prerequisites at: https://lisk.io/documentation/lisk-core/setup/pre-install/binary"
+		exit 2
+	fi
+	
+	if [ -x "$(command -v jq)" ]; then
+		echo -e "Jq is installed.\\t\\t\\t\\t\\tPassed"
+	else
+		echo -e "\\njq is not installed.\\t\\t\\t\\t\\tFailed"
+		echo -e "\\nPlease follow the Prerequisites at: https://lisk.io/documentation/lisk-core/setup/pre-install/binary"
 		exit 2
 	fi
 
