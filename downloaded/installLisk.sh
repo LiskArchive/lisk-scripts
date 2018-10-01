@@ -244,7 +244,7 @@ upgrade_lisk() {
 		# shellcheck source=../packaged/shared.sh
 		. "$LISK_INSTALL"/shared.sh
 		pg_ctl initdb -D "$LISK_NEW_PG"/data &>>$LOG_FILE
-		"$LISK_NEW_PG"/bin/pg_upgrade -b "$LISK_OLD_PG"/bin -B "$LISK_NEW_PG"/bin -d "$LISK_OLD_PG"/data -D "$LISK_NEW_PG"/data &>>$LOG_FILE
+		LD_LIBRARY_PATH="$LISK_OLD_PG/lib:$LD_LIBRARY_PATH" "$LISK_NEW_PG/bin/pg_upgrade" -b "$LISK_OLD_PG/bin" -B "$LISK_NEW_PG/bin" -d "$LISK_OLD_PG/data" -D "$LISK_NEW_PG/data" &>>$LOG_FILE
 		bash "$LISK_INSTALL"/lisk.sh start_db &>>$LOG_FILE
 		bash "$LISK_INSTALL"/analyze_new_cluster.sh &>>$LOG_FILE
 		rm -f "$LISK_INSTALL"/*cluster*
