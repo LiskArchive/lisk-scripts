@@ -117,12 +117,14 @@ download_lisk() {
 
 	echo -e "\\nDownloading current Lisk binaries: ""$LISK_VERSION"
 
-	if [[ ! curl -f --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION" ]] ; then
+	DOWNLOAD_CHECK=$(curl -f --progress-bar -o "$LISK_VERSION" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION" || echo error)
+	if [[ $DOWNLOAD_CHECK == "error" ]] ; then
 		echo "Error downloading $LISK_VERSION. Aborting."
 		exit 1
 	fi
 
-	if [[ ! curl -f -s "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" -o "$LISK_VERSION".SHA256 ]] ; then
+	DOWNLOAD_CHECK=$(curl -f --progress-bar -o "$LISK_VERSION.SHA256" "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" || echo error)
+	if [[ $DOWNLOAD_CHECK == "error" ]] ; then
 		echo "Error downloading $LISK_VERSION.SHA256. Aborting."
 		exit 1
 	fi
