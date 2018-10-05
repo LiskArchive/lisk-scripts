@@ -24,7 +24,6 @@ DEFAULT_LISK_LOCATION=$( pwd )
 DEFAULT_RELEASE=main
 DEFAULT_SYNC=no
 LOG_FILE=installLisk.out
-LISK_VERSION=lisk-Linux-x86_64.tar.gz
 
 # Setup logging
 exec > >(tee -ia $LOG_FILE)
@@ -80,6 +79,11 @@ user_prompts() {
 }
 
 download_lisk() {
+	if [ -z "$LISK_VERSION_NUMBER" ] ; then
+		echo "Getting latest lisk version"
+		LISK_VERSION_NUMBER=$(curl --silent --fail "https://downloads.lisk.io/lisk/$RELEASE/latest.txt")
+	fi
+	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-Linux-x86_64.tar.gz
 	LISK_DIR=${LISK_VERSION%.tar.gz}
 
 	if [[ -n "$LOCAL_TAR" ]]; then
@@ -92,8 +96,8 @@ download_lisk() {
 	rm -f "$LISK_VERSION"{,.SHA256}
 
 	echo "Downloading current Lisk binaries: $LISK_VERSION"
-	curl --progress-bar --fail "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION" --output "$LISK_VERSION"
-	curl --silent --fail "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION.SHA256" --output "$LISK_VERSION.SHA256"
+	curl --progress-bar --fail "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION" --output "$LISK_VERSION"
+	curl --silent --fail "https://downloads.lisk.io/lisk/$RELEASE/$LISK_VERSION_NUMBER/$LISK_VERSION.SHA256" --output "$LISK_VERSION.SHA256"
 
 	if sha256sum -c "$LISK_VERSION.SHA256"; then
 		echo "Checksum verfication succeeded."
@@ -170,8 +174,8 @@ backup_lisk() {
 }
 
 start_lisk() { # Parse the various startup flags
+	cd "$LISK_INSTALL" || exit 2
 	if [[ "$REBUILD" == true ]]; then
-		cd "$LISK_INSTALL" || exit 2
 		if [[ -z "$URL" ]]; then
 			echo "Starting Lisk with official snapshot"
 			bash lisk.sh rebuild
@@ -181,7 +185,6 @@ start_lisk() { # Parse the various startup flags
 		fi
 	elif [[ "$FRESH_INSTALL" == true && "$SYNC" == "no" ]]; then
 		echo "Starting Lisk with official snapshot"
-		cd "$LISK_INSTALL" || exit 2
 		bash lisk.sh rebuild
 	else
 		if [[ "$SYNC" == "yes" ]]; then
@@ -189,7 +192,6 @@ start_lisk() { # Parse the various startup flags
 			bash lisk.sh rebuild -f var/db/blockchain.db.gz
 		else
 			echo "Starting Lisk with current blockchain"
-			cd "$LISK_INSTALL" || exit 2
 			bash lisk.sh start
 		fi
 	fi
@@ -229,7 +231,7 @@ upgrade_lisk() {
 }
 
 usage() {
-	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|beta>] [-n] [-h [-u <URL>]] [-0 <yes|no>]"
+	echo "Usage: $0 <install|upgrade> [-d <DIRECTORY>] [-f <FILE>] [-r <main|test|beta>] [-n] [-h [-u <URL>]] [-0 <yes|no>] [-s <LISK_VERSION_NUMBER>]"
 	echo "install             -- install Lisk"
 	echo "upgrade             -- upgrade Lisk"
 	echo " -d <DIRECTORY>     -- install location"
@@ -238,6 +240,7 @@ usage() {
 	echo " -h                 -- rebuild instead of copying database"
 	echo " -u <URL>           -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
+	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2. By default, the latest version will be installed"
 }
 
 parse_option() {
@@ -245,13 +248,14 @@ parse_option() {
 	LOCAL_TAR=""
 	REBUILD=false
 	URL=""
+	LISK_VERSION_NUMBER=""
 	#
 	LISK_MASTER_PASSWORD=${LISK_MASTER_PASSWORD:-""}
 
 # LISK_LOCATION, RELEASE, SYNC
 
 	OPTIND=2
-	while getopts :d:f:r:u:h0: OPT; do
+	while getopts :d:f:r:u:s:h0: OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
@@ -260,6 +264,7 @@ parse_option() {
 			h) REBUILD=true ;;
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
+			s) LISK_VERSION_NUMBER="$OPTARG" ;;
 		esac
 	done
 
