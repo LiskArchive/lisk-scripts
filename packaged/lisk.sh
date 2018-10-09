@@ -43,6 +43,7 @@ LISK_LOGS=$( get_config '.logFileName' )
 
 LOGS_DIR="$(pwd)/logs"
 
+MINIMAL_DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
 # Allocates variables for use later, reusable for changing pm2 config.
 config() {
 	DB_NAME=$( get_config '.db.database' )
@@ -117,6 +118,13 @@ download_blockchain() {
 	if [ "$DB_DOWNLOAD" = "Y" ]; then
 		rm -f "$DB_SNAPSHOT"
 		if [ "$BLOCKCHAIN_URL" = "" ]; then
+			# performing network check here
+			# if user has not defined snapshot location, only download blockchain for networks where we have a snapshot
+			if [ "$NETWORK" != "main" ] && [ "$NETWORK" != "test" ] && [ "$NETWORK" != "beta" ]; then
+				DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
+				echo "Warning: no snapshot available for $LISK_NETWORK. Syncing from genesis"
+				return
+			fi
 			BLOCKCHAIN_URL="https://downloads.lisk.io/lisk/$NETWORK"
 		fi
 		echo '√ Downloading '"$DB_SNAPSHOT"' from '"$BLOCKCHAIN_URL"
@@ -376,7 +384,7 @@ parse_option() {
 				fi ;;
 
 			0)
-				DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
+				DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
 				DB_DOWNLOAD=N
 				;;
 
