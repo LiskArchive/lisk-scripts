@@ -108,38 +108,42 @@ create_database() {
 }
 
 populate_database() {
-	if psql -ltAq | grep -q "^$DB_NAME|" >> "$SH_LOG_FILE" 2>&1; then
+	if ! psql -ltAq | grep -q "^$DB_NAME|" >> "$SH_LOG_FILE" 2>&1; then
+		echo "Could not find database $DB_NAME."
+		exit 1
+	fi
+	frobnicate
+	if [ "$DB_DOWNLOAD" = "Y" ]; then
 		download_blockchain
-		restore_blockchain
+	fi
+	restore_blockchain
+}
+
+frobnicate() {
+	# if not custom URL has been passed, use downloads.lisk.io
+	if [ -z "$BLOCKCHAIN_URL" ]; then
+		# skip downloading anything for non-public networks
+		if [ "$NETWORK" != "main" ] && [ "$NETWORK" != "test" ] && [ "$NETWORK" != "beta" ]; then
+			DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
+			DB_DOWNLOAD="N"
+		else
+			BLOCKCHAIN_URL="https://downloads.lisk.io/lisk/$NETWORK"
+		fi
 	fi
 }
 
 download_blockchain() {
-	if [ "$DB_DOWNLOAD" = "Y" ]; then
-		rm -f "$DB_SNAPSHOT"
-		if [ "$BLOCKCHAIN_URL" = "" ]; then
-			# performing network check here
-			# if user has not defined snapshot location, only download blockchain for networks where we have a snapshot
-			if [ "$NETWORK" != "main" ] && [ "$NETWORK" != "test" ] && [ "$NETWORK" != "beta" ]; then
-				DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
-				echo "Warning: no snapshot available for $LISK_NETWORK. Syncing from genesis"
-				return
-			fi
-			BLOCKCHAIN_URL="https://downloads.lisk.io/lisk/$NETWORK"
-		fi
-		echo '√ Downloading '"$DB_SNAPSHOT"' from '"$BLOCKCHAIN_URL"
+	rm -f "$DB_SNAPSHOT"
+	echo "√ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
 
-		if ! curl --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
-			rm -f "$DB_SNAPSHOT"
-			echo "X Failed to download blockchain snapshot."
-			exit 1
-		else
-			# Required to clean up ugly curl output in the logs
-			sed -i -e '/[#]/d' "$SH_LOG_FILE"
-			echo "√ Blockchain snapshot downloaded successfully."
-		fi
+	if ! curl --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
+		rm -f "$DB_SNAPSHOT"
+		echo "X Failed to download blockchain snapshot."
+		exit 1
 	else
-		echo -e "√ Using Local Snapshot."
+		# Required to clean up ugly curl output in the logs
+		sed -i -e '/[#]/d' "$SH_LOG_FILE"
+		echo "√ Blockchain snapshot downloaded successfully."
 	fi
 }
 
