@@ -82,7 +82,7 @@ blockheight() {
 
 network() {
 	NETWORK=${LISK_NETWORK%net}
-	echo -e 'Lisk configured for '"$NETWORK"' network\n' >> "$SH_LOG_FILE" 2>&1
+	echo "Lisk configured for $LISK_NETWORK" |tee -a "$SH_LOG_FILE"
 }
 
 create_user() {
