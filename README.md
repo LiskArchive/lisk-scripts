@@ -12,14 +12,6 @@ This repository contains various `bash` and `node` scripts used to install and m
 
     Installs or upgrades the official Lisk binary packages.
 
-  - `setup_docker.Linux`
-
-    Installs the latest version of Docker on Debian/Ubuntu Linux.
-
-  - `setup_postgresql.Linux`
-
-    Installs the latest version of Postgres on Debian/Ubuntu Linux.
-
 - **Packaged** scripts included in each [Lisk Build](https://github.com/LiskHQ/lisk-build):
 
   - `env.sh`
@@ -45,10 +37,6 @@ This repository contains various `bash` and `node` scripts used to install and m
   - `tune.sh`
 
     Optimizes the `postgres` configuration according to the memory of the host machine.
-
-  - `updateConfig.js`
-
-    Migrates the configuration of a Lisk installation between package upgrades.
 
 ## Authors
 

@@ -31,25 +31,25 @@ if [ "$USER" == "root" ]; then
 	exit 1
 fi
 
-# shellcheck source=shared.sh
-. "$(pwd)/shared.sh"
 # shellcheck source=env.sh
 . "$(pwd)/env.sh"
-
+# shellcheck source=shared.sh
+. "$(pwd)/shared.sh"
 
 PM2_CONFIG="$(pwd)/etc/pm2-lisk.json"
-PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
-LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
-LISK_LOGS="$(jq -r '.logFileName' "$LISK_CONFIG")"
+PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
+
+LISK_LOGS=$( get_config '.logFileName' )
 
 LOGS_DIR="$(pwd)/logs"
 
+MINIMAL_DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
 # Allocates variables for use later, reusable for changing pm2 config.
 config() {
-	DB_NAME="$(jq -r '.db.database' "$LISK_CONFIG")"
-	DB_PORT="$(jq -r '.db.port' "$LISK_CONFIG")"
-	DB_USER="$(jq -r '.db.user' "$LISK_CONFIG")"
-	DB_PASS="password"
+	DB_NAME=$( get_config '.db.database' )
+	DB_PORT=$( get_config '.db.port' )
+	DB_USER=$( get_config '.db.user' )
+	DB_PASS=$( get_config '.db.password' )
 	DB_DATA="$(pwd)/pgsql/data"
 	DB_LOG_FILE="$LOGS_DIR/pgsql.log"
 	DB_SNAPSHOT="blockchain.db.gz"
@@ -58,9 +58,9 @@ config() {
 	REDIS_CONFIG="$(pwd)/etc/redis.conf"
 	REDIS_BIN="$(pwd)/bin/redis-server"
 	REDIS_CLI="$(pwd)/bin/redis-cli"
-	REDIS_ENABLED="$(jq -r '.cacheEnabled' "$LISK_CONFIG")"
-	REDIS_PORT="$(jq -r '.redis.port' "$LISK_CONFIG")"
-	REDIS_PASSWORD="$(jq -r '.redis.password' "$LISK_CONFIG")"
+	REDIS_ENABLED=$( get_config '.cacheEnabled' )
+	REDIS_PORT=$( get_config '.redis.port' )
+	REDIS_PASSWORD=$( get_config '.redis.password' )
 	REDIS_PID="$(pwd)/redis/redis_6380.pid"
 }
 
@@ -81,22 +81,8 @@ blockheight() {
 }
 
 network() {
-	NETHASH=$( jq -r .nethash "$LISK_CONFIG" )
-	case $NETHASH in
-		"ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511")
-			NETWORK="main"
-			;;
-		"da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba")
-			NETWORK="test"
-			;;
-		"ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c")
-			NETWORK="beta"
-			;;
-		*)
-			NETWORK="local"
-			;;
-	esac
-	echo -e 'Lisk configured for '"$NETWORK"' network\n' >> "$SH_LOG_FILE" 2>&1
+	NETWORK=${LISK_NETWORK%net}
+	echo "Lisk configured for $LISK_NETWORK" |tee -a "$SH_LOG_FILE"
 }
 
 create_user() {
@@ -122,31 +108,42 @@ create_database() {
 }
 
 populate_database() {
-	if psql -ltAq | grep -q "^$DB_NAME|" >> "$SH_LOG_FILE" 2>&1; then
+	if ! psql -ltAq | grep -q "^$DB_NAME|" >> "$SH_LOG_FILE" 2>&1; then
+		echo "Could not find database $DB_NAME."
+		exit 1
+	fi
+	frobnicate
+	if [ "$DB_DOWNLOAD" = "Y" ]; then
 		download_blockchain
-		restore_blockchain
+	fi
+	restore_blockchain
+}
+
+frobnicate() {
+	# if not custom URL has been passed, use downloads.lisk.io
+	if [ -z "$BLOCKCHAIN_URL" ]; then
+		# skip downloading anything for non-public networks
+		if [ "$NETWORK" != "main" ] && [ "$NETWORK" != "test" ] && [ "$NETWORK" != "beta" ]; then
+			DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
+			DB_DOWNLOAD="N"
+		else
+			BLOCKCHAIN_URL="https://downloads.lisk.io/lisk/$NETWORK"
+		fi
 	fi
 }
 
 download_blockchain() {
-	if [ "$DB_DOWNLOAD" = "Y" ]; then
-		rm -f "$DB_SNAPSHOT"
-		if [ "$BLOCKCHAIN_URL" = "" ]; then
-			BLOCKCHAIN_URL="https://downloads.lisk.io/lisk/$NETWORK"
-		fi
-		echo '√ Downloading '"$DB_SNAPSHOT"' from '"$BLOCKCHAIN_URL"
+	rm -f "$DB_SNAPSHOT"
+	echo "√ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
 
-		if ! curl --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
-			rm -f "$DB_SNAPSHOT"
-			echo "X Failed to download blockchain snapshot."
-			exit 1
-		else
-			# Required to clean up ugly curl output in the logs
-			sed -i -e '/[#]/d' "$SH_LOG_FILE"
-			echo "√ Blockchain snapshot downloaded successfully."
-		fi
+	if ! curl --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
+		rm -f "$DB_SNAPSHOT"
+		echo "X Failed to download blockchain snapshot."
+		exit 1
 	else
-		echo -e "√ Using Local Snapshot."
+		# Required to clean up ugly curl output in the logs
+		sed -i -e '/[#]/d' "$SH_LOG_FILE"
+		echo "√ Blockchain snapshot downloaded successfully."
 	fi
 }
 
@@ -371,8 +368,8 @@ parse_option() {
 			p)
 				if [ -f "$OPTARG" ]; then
 					PM2_CONFIG="$OPTARG"
-					PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
-					LISK_CONFIG="$( jq .apps[0].args -r "$PM2_CONFIG" |cut -d' ' -f2 )"
+					PM2_APP=$( get_lisk_app_name "$PM2_CONFIG" )
+					LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$PM2_CONFIG" )
 					# Resets all of the variables
 					config
 				else
@@ -391,7 +388,7 @@ parse_option() {
 				fi ;;
 
 			0)
-				DB_SNAPSHOT="$(pwd)/var/db/blockchain.db.gz"
+				DB_SNAPSHOT="$MINIMAL_DB_SNAPSHOT"
 				DB_DOWNLOAD=N
 				;;
 

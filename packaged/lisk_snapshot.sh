@@ -24,10 +24,10 @@
 ### Init. Env. #######################################################
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
-# shellcheck source=shared.sh
-. "$(pwd)/shared.sh"
 # shellcheck source=env.sh
 . "$(pwd)/env.sh"
+# shellcheck source=shared.sh
+. "$(pwd)/shared.sh"
 
 ### Variables Definition #############################################
 
@@ -35,9 +35,8 @@ SNAPSHOT_CONFIG="$PWD/etc/snapshot.json"
 TARGET_DB_NAME="$( jq -r .db.database "$SNAPSHOT_CONFIG" )"
 LOG_LOCATION="$( jq -r .logFileName "$SNAPSHOT_CONFIG" )"
 
-LISK_CONFIG="config.json"
 PM2_CONFIG="$PWD/etc/pm2-snapshot.json"
-SOURCE_DB_NAME="$( jq -r .db.database "$LISK_CONFIG" )"
+SOURCE_DB_NAME=$( get_config '.db.database' )
 
 BACKUP_LOCATION="$PWD/backups"
 
@@ -73,8 +72,8 @@ parse_option() {
 
 			s)
 				if [ -f "$OPTARG" ]; then
-					LISK_CONFIG="$OPTARG"
-					SOURCE_DB_NAME="$( jq -r .db.database "$LISK_CONFIG" )"
+					LISK_CUSTOM_CONFIG="$OPTARG"
+					SOURCE_DB_NAME=$( get_config '.db.database' )
 				else
 					echo "$(now) config.json not found. Please verify the file exists and try again."
 					exit 1
@@ -159,7 +158,7 @@ bash lisk.sh stop_node -p "$PM2_CONFIG" &> /dev/null
 cat /dev/null > "$LOG_LOCATION"
 dropdb --if-exists "$TARGET_DB_NAME" &> /dev/null
 
-echo -e "\\n$(now) Deleting snapshots older then $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
+echo -e "\\n$(now) Deleting snapshots older than $DAYS_TO_KEEP day(s) in $BACKUP_LOCATION"
 mkdir -p "$BACKUP_LOCATION" &> /dev/null
 find "$BACKUP_LOCATION" -name "${SOURCE_DB_NAME}*.gz" -mtime +"$(( DAYS_TO_KEEP - 1 ))" -exec rm {} \;
 

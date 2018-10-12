@@ -17,25 +17,36 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-bail() {
-	echo "Error executing command, exiting"
-	exit 1
+function get_lisk_app_name() {
+	local PM2_CONFIG=$1
+	PM2_APP="$( jq .apps[0].name -r "$PM2_CONFIG" )"
+	echo "$PM2_APP"
 }
 
-exec_cmd_nobail() {
-	echo "+ $1"
-	bash -c "$1"
+function get_lisk_custom_config() {
+	local PM2_CONFIG=$1
+	local REGEXP="-c ([^ ]+)"
+	PM2_APP_ARGS="$( jq .apps[0].args -r "$PM2_CONFIG" )"
+	if [[ "$PM2_APP_ARGS" =~ $REGEXP ]]; then
+		LISK_CUSTOM_CONFIG="${BASH_REMATCH[1]}"
+	else
+		LISK_CUSTOM_CONFIG=/dev/null
+	fi
+	echo "$LISK_CUSTOM_CONFIG"
 }
 
-exec_cmd() {
-	exec_cmd_nobail "$1" || bail
-}
+# Default value of LISK_CUSTOM_CONFIG
+LISK_CUSTOM_CONFIG=$( get_lisk_custom_config "$LISK_PATH/etc/pm2-lisk.json" )
 
-check_cmds() {
-	local cmds=("${!1}")
-	for i in "${cmds[@]}"; do
-		command -v "$i" > /dev/null 2>&1 || {
-			echo "Error: $i command was not found. Aborting." >&2; exit 1;
-		}
-	done
+function get_config() {
+# use first of: custom configuration file, network configuration file or default configuration file
+	local KEY=$1
+	VALUE=$( jq --raw-output "$KEY" "$LISK_CUSTOM_CONFIG" )
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/$LISK_NETWORK/config.json" )
+	fi
+	if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+		VALUE=$( jq --raw-output "$KEY" "$(pwd)/config/default/config.json" )
+	fi
+	echo "$VALUE"
 }
