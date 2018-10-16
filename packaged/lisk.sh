@@ -278,6 +278,7 @@ stop_redis_cmd(){
 
 start_lisk() {
 	start_redis
+	set_logs_paths
 	if pm2 start "$PM2_CONFIG"  >> "$SH_LOG_FILE"; then
 		echo "[+] Lisk started successfully."
 		sleep 3
@@ -285,6 +286,13 @@ start_lisk() {
 	else
 		echo "[-] Failed to start Lisk."
 	fi
+}
+
+set_logs_paths() {
+	mkdir -p "$(pwd)/logs/$LISK_NETWORK"
+	TEMP=$( mktemp )
+	jq '.apps[0].out_file = "logs/'"$LISK_NETWORK"'/lisk.app.log"|.apps[0].error_file = "logs/'"$LISK_NETWORK"'/lisk.app.err"' "$PM2_CONFIG" >"$TEMP"
+	mv -f "$TEMP" "$PM2_CONFIG"
 }
 
 stop_lisk() {
