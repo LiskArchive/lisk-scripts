@@ -212,7 +212,7 @@ upgrade_lisk() {
 		ABS_LOG_FILE="$( pwd )/$LOG_FILE"
 		TEMP=$( mktemp -d )
 		pushd "$TEMP" >/dev/null || exit 2
-		LD_LIBRARY_PATH="$LISK_OLD_PG/lib:$LD_LIBRARY_PATH" "$LISK_NEW_PG/bin/pg_upgrade" -b "$LISK_OLD_PG/bin" -B "$LISK_NEW_PG/bin" -d "$LISK_OLD_PG/data" -D "$LISK_NEW_PG/data" &>>"$ABS_LOG_FILE"
+		LD_LIBRARY_PATH="$LISK_OLD_PG/lib:${LD_LIBRARY_PATH:-}" "$LISK_NEW_PG/bin/pg_upgrade" -b "$LISK_OLD_PG/bin" -B "$LISK_NEW_PG/bin" -d "$LISK_OLD_PG/data" -D "$LISK_NEW_PG/data" &>>"$ABS_LOG_FILE"
 		popd >/dev/null || exit 2
 		bash "$LISK_INSTALL/lisk.sh" start_db &>>$LOG_FILE
 		bash "$TEMP/analyze_new_cluster.sh" &>>$LOG_FILE
