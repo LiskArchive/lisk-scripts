@@ -299,6 +299,7 @@ reload_lisk() {
 
 rebuild_lisk() {
 	create_database
+	frobnicate
 	download_blockchain
 	restore_blockchain
 }
