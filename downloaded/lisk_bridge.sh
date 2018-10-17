@@ -21,7 +21,7 @@
 ######################################################################
 
 # VERSION 0.3.7
-
+# This version bridges 1.0 versions of lisk core to 1.1
 set -eo pipefail
 
 # Declare working variables
