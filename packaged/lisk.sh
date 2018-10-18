@@ -113,9 +113,7 @@ populate_database() {
 		exit 1
 	fi
 	frobnicate
-	if [ "$DB_DOWNLOAD" = "Y" ]; then
-		download_blockchain
-	fi
+	download_blockchain
 	restore_blockchain
 }
 
@@ -133,10 +131,12 @@ frobnicate() {
 }
 
 download_blockchain() {
+	if [ "$DB_DOWNLOAD" = "N" ]; then
+		return
+	fi
 	rm -f "$DB_SNAPSHOT"
 	echo "√ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
-
-	if ! curl --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
+	if ! curl --fail --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
 		rm -f "$DB_SNAPSHOT"
 		echo "X Failed to download blockchain snapshot."
 		exit 1
