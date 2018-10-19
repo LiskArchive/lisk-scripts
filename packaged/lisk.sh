@@ -89,10 +89,10 @@ create_user() {
 	dropuser --if-exists "$DB_USER" >> "$SH_LOG_FILE" 2>&1
 	createuser --createdb "$DB_USER" >> "$SH_LOG_FILE" 2>&1
 	if ! psql -qd postgres -c "ALTER USER $DB_USER WITH PASSWORD '$DB_PASS';" >> "$SH_LOG_FILE" 2>&1; then
-		echo "X Failed to create Postgresql user."
+		echo "[-] Failed to create Postgresql user."
 		exit 1
 	else
-		echo "+ Postgresql user created successfully."
+		echo "[+] Postgresql user created successfully."
 	fi
 }
 
@@ -100,10 +100,10 @@ create_database() {
 	dropdb --if-exists "$DB_NAME" >> "$SH_LOG_FILE" 2>&1
 
 	if ! createdb "$DB_NAME" >> "$SH_LOG_FILE" 2>&1; then
-		echo "X Failed to create Postgresql database."
+		echo "[-] Failed to create Postgresql database."
 		exit 1
 	else
-		echo "+ Postgresql database created successfully."
+		echo "[+] Postgresql database created successfully."
 	fi
 }
 
@@ -135,15 +135,15 @@ download_blockchain() {
 		return
 	fi
 	rm -f "$DB_SNAPSHOT"
-	echo "+ Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
+	echo "[+] Downloading $DB_SNAPSHOT from $BLOCKCHAIN_URL"
 	if ! curl --fail --progress-bar -o "$DB_SNAPSHOT" "$BLOCKCHAIN_URL/$DB_SNAPSHOT"; then
 		rm -f "$DB_SNAPSHOT"
-		echo "X Failed to download blockchain snapshot."
+		echo "[-] Failed to download blockchain snapshot."
 		exit 1
 	else
 		# Required to clean up ugly curl output in the logs
 		sed -i -e '/[#]/d' "$SH_LOG_FILE"
-		echo "+ Blockchain snapshot downloaded successfully."
+		echo "[+] Blockchain snapshot downloaded successfully."
 	fi
 }
 
@@ -152,10 +152,10 @@ restore_blockchain() {
 
 	set -o pipefail
 	if ! gunzip -fcq "$DB_SNAPSHOT" | psql -q -U "$DB_USER" -d "$DB_NAME" >> "$SH_LOG_FILE" 2>&1; then
-		echo "X Failed to restore blockchain."
+		echo "[-] Failed to restore blockchain."
 		exit 1
 	else
-		echo "+ Blockchain restored successfully."
+		echo "[+] Blockchain restored successfully."
 	fi
 	set +o pipefail
 }
@@ -164,7 +164,7 @@ autostart_cron() {
 	local cmd="crontab"
 
 	if ! command -v "$cmd" > /dev/null 2>&1; then
-		echo "X Failed to execute crontab."
+		echo "[-] Failed to execute crontab."
 		return 1
 	fi
 
@@ -177,10 +177,10 @@ EOF
 	)
 
 	if ! printf "%s\\n" "$crontab" | $cmd - >> "$SH_LOG_FILE" 2>&1; then
-		echo "X Failed to update crontab."
+		echo "[-] Failed to update crontab."
 		return 1
 	else
-		echo "+ Crontab updated successfully."
+		echo "[+] Crontab updated successfully."
 		return 0
 	fi
 }
@@ -202,29 +202,29 @@ coldstart_lisk() {
 
 start_postgresql() {
 	if pgrep -x "postgres" > /dev/null 2>&1; then
-		echo "+ Postgresql is running."
+		echo "[+] Postgresql is running."
 	else
 		if ! pg_ctl -w -D "$DB_DATA" -l "$DB_LOG_FILE" start >> "$SH_LOG_FILE" 2>&1; then
-			echo "X Failed to start Postgresql."
+			echo "[-] Failed to start Postgresql."
 			exit 1
 		else
-			echo "+ Postgresql started successfully."
+			echo "[+] Postgresql started successfully."
 		fi
 	fi
 }
 
 stop_postgresql() {
 	if ! pgrep -x "postgres" > /dev/null 2>&1; then
-		echo "+ Postgresql is not running."
+		echo "[+] Postgresql is not running."
 	else
 		if pg_ctl -D "$DB_DATA" -l "$DB_LOG_FILE" stop >> "$SH_LOG_FILE" 2>&1; then
-			echo "+ Postgresql stopped successfully."
+			echo "[+] Postgresql stopped successfully."
 			else
-			echo "X Postgresql failed to stop."
+			echo "[-] Postgresql failed to stop."
 		fi
 		if pgrep -x "postgres" >> "$SH_LOG_FILE" 2>&1; then
 			pkill -x postgres -9 >> "$SH_LOG_FILE" 2>&1;
-			echo "+ Postgresql Killed."
+			echo "[+] Postgresql Killed."
 		fi
 	fi
 }
@@ -232,17 +232,17 @@ stop_postgresql() {
 start_redis() {
 	if [[ "$REDIS_ENABLED" == 'true' ]]; then
 		if [[ "$REDIS_PORT" == '6379' ]]; then
-			echo "+ Using OS Redis-Server, skipping startup"
+			echo "[+] Using OS Redis-Server, skipping startup"
 		elif [[ ! -f "$REDIS_PID" ]]; then
 
 			if "$REDIS_BIN" "$REDIS_CONFIG"; then
-				echo "+ Redis-Server started successfully."
+				echo "[+] Redis-Server started successfully."
 			else
-				echo "X Failed to start Redis-Server."
+				echo "[-] Failed to start Redis-Server."
 				exit 1
 			fi
 		else
-			echo "+ Redis-Server is already running"
+			echo "[+] Redis-Server is already running"
 		fi
 	fi
 }
@@ -250,19 +250,19 @@ start_redis() {
 stop_redis() {
 	if [[ "$REDIS_ENABLED" == 'true' ]]; then
 		if [[ "$REDIS_PORT" == '6379' ]]; then
-			echo "+ OS Redis-Server detected, skipping shutdown"
+			echo "[+] OS Redis-Server detected, skipping shutdown"
 		elif [[ -f "$REDIS_PID" ]]; then
 
 			if stop_redis_cmd; then
-				echo "+ Redis-Server stopped successfully."
+				echo "[+] Redis-Server stopped successfully."
 			else
-				echo "X Failed to stop Redis-Server."
+				echo "[-] Failed to stop Redis-Server."
 				REDIS_PID="$(tail -n1 "$REDIS_PID")"
 				pkill -9 "$REDIS_PID"
-				echo "+ Redis-Server killed"
+				echo "[+] Redis-Server killed"
 			fi
 		else
-			echo "+ Redis-Server already stopped"
+			echo "[+] Redis-Server already stopped"
 		fi
 	fi
 }
@@ -279,17 +279,17 @@ stop_redis_cmd(){
 start_lisk() {
 	start_redis
 	if pm2 start "$PM2_CONFIG"  >> "$SH_LOG_FILE"; then
-		echo "+ Lisk started successfully."
+		echo "[+] Lisk started successfully."
 		sleep 3
 		check_status
 	else
-		echo "X Failed to start Lisk."
+		echo "[-] Failed to start Lisk."
 	fi
 }
 
 stop_lisk() {
 	pm2 delete "$PM2_CONFIG" >> "$SH_LOG_FILE"
-	echo "+ Lisk stopped successfully."
+	echo "[+] Lisk stopped successfully."
 	stop_redis
 }
 
@@ -318,10 +318,10 @@ check_status() {
 
 	check_pid
 	if [ "$STATUS" -eq 0  ]; then
-		echo "+ Lisk is running as PID: $PID"
+		echo "[+] Lisk is running as PID: $PID"
 		blockheight
 	else
-		echo "X Lisk is not running"
+		echo "[-] Lisk is not running"
 		exit 1
 	fi
 }
