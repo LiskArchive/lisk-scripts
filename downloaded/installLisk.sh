@@ -81,19 +81,19 @@ user_prompts() {
 }
 
 download_lisk() {
-	if [ -z "$LISK_VERSION_NUMBER" ] ; then
-		echo "Getting latest lisk version"
-		LISK_VERSION_NUMBER=$(curl --silent --fail "https://downloads.lisk.io/lisk/$RELEASE/latest.txt")
-	fi
-	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-Linux-x86_64.tar.gz
-	LISK_DIR=${LISK_VERSION%.tar.gz}
-
 	if [[ -n "$LOCAL_TAR" ]]; then
 		echo "Using local binary $LOCAL_TAR"
 		LISK_VERSION="$LOCAL_TAR"
 		LISK_DIR=${LISK_VERSION%.tar.gz}
 		return
 	fi
+
+	if [ -z "$LISK_VERSION_NUMBER" ] ; then
+		echo "Getting latest lisk version"
+		LISK_VERSION_NUMBER=$(curl --silent --fail "https://downloads.lisk.io/lisk/$RELEASE/latest.txt")
+	fi
+	LISK_VERSION=lisk-$LISK_VERSION_NUMBER-Linux-x86_64.tar.gz
+	LISK_DIR=${LISK_VERSION%.tar.gz}
 
 	rm -f "$LISK_VERSION"{,.SHA256}
 
