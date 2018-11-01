@@ -19,7 +19,7 @@ IFS=$'\n\t'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-# VERSION 0.3.7
+# VERSION 0.4.0
 
 # Variable Declaration
 DEFAULT_LISK_LOCATION=$( pwd )
@@ -225,11 +225,8 @@ upgrade_lisk() {
 	fi
 
 	echo "Copying config.json entries from previous installation"
-	if [[ -z "$LISK_MASTER_PASSWORD" ]]; then
-		"$LISK_INSTALL/bin/node" "$LISK_INSTALL/scripts/update_config.js" "$LISK_BACKUP/config.json" "$LISK_INSTALL/config.json"
-	else
-		"$LISK_INSTALL/bin/node" "$LISK_INSTALL/scripts/update_config.js" "$LISK_BACKUP/config.json" "$LISK_INSTALL/config.json" --password "$LISK_MASTER_PASSWORD"
-	fi
+	OLD_VERSION=$( "$LISK_INSTALL/bin/jq" --raw-output .version "$LISK_BACKUP/package.json" )
+	"$LISK_INSTALL/bin/node" "$LISK_INSTALL/scripts/update_config.js" --network "${RELEASE}net" --output "$LISK_INSTALL/config.json" "$LISK_BACKUP/config.json" "$OLD_VERSION"
 }
 
 usage() {
