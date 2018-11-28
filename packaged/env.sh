@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
+export NODE_ENV="production"
+
 LISK_PATH=$( cd -P -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd -P )
 
 export PATH="$LISK_PATH/bin:$LISK_PATH/pgsql/bin:$PATH"
