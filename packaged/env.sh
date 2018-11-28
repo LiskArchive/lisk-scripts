@@ -22,6 +22,5 @@ export NODE_ENV="production"
 LISK_PATH=$( cd -P -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd -P )
 
 export PATH="$LISK_PATH/bin:$LISK_PATH/pgsql/bin:$PATH"
-[[ -f "$LISK_PATH/finished" ]] || export LD_LIBRARY_PATH="$LISK_PATH/pgsql/lib:$LISK_PATH/lib:$LD_LIBRARY_PATH"
 export PM2_HOME=$LISK_PATH/.pm2
 # LISK_NETWORK is set at build time
