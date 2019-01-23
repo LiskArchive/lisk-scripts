@@ -54,6 +54,12 @@ prereq_checks() {
 		echo "Error: tar is not installed. Exiting."
 		exit 2
 	fi
+	POSTGRES_PROCESS_NUM=$(ps aux | grep postgres | wc -l)
+	if [[ $FRESH_INSTALL == 'true' && $POSTGRES_PROCESS_NUM -gt 1 ]] ; then
+		echo "Error: Postgresql is already running"
+		echo "Postgresql by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
+		exit 2
+	fi
 }
 
 user_prompts() {
