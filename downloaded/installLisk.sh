@@ -54,10 +54,13 @@ prereq_checks() {
 		echo "Error: tar is not installed. Exiting."
 		exit 2
 	fi
-	POSTGRES_PROCESS_NUM=$(ps aux | grep postgres | wc -l)
-	if [[ $FRESH_INSTALL == 'true' && $POSTGRES_PROCESS_NUM -gt 1 ]] ; then
-		echo "Error: Postgresql is already running"
+
+	PORT_5432_IN_USE=$(netstat -tna | grep -c ':5432 .*LISTEN')
+	IGNORE_WARNING=${IGNORE_WARNING:-'false'}
+	if [[ $FRESH_INSTALL == 'true' && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == 'false' ]] ; then
+		echo "Error: A process is already listening on port 5432"
 		echo "Postgresql by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
+		echo "To proceed anyway, use the -i flag to ignore warning"
 		exit 2
 	fi
 }
@@ -243,6 +246,7 @@ usage() {
 	echo " -f <FILE>          -- use a local tarball to install"
 	echo " -r <main|test|beta> -- choose network (default: main)"
 	echo " -h                 -- rebuild instead of copying database"
+	echo " -i                 -- ignore warning"
 	echo " -u <URL>           -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
 	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2. By default, the latest version will be installed"
@@ -251,6 +255,7 @@ usage() {
 parse_option() {
 	# defaults
 	LOCAL_TAR=""
+	IGNORE_WARNING='false'
 	REBUILD=false
 	URL=""
 	LISK_VERSION_NUMBER=""
@@ -260,13 +265,14 @@ parse_option() {
 # LISK_LOCATION, RELEASE, SYNC
 
 	OPTIND=2
-	while getopts :d:f:r:u:s:h0: OPT; do
+	while getopts :d:f:r:u:s:hi0: OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
 			f) LOCAL_TAR="$OPTARG" ;;
 			r) RELEASE="$OPTARG" ;;
 			h) REBUILD=true ;;
+			i) IGNORE_WARNING='true' ;;
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			s) LISK_VERSION_NUMBER="$OPTARG" ;;
