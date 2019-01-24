@@ -56,9 +56,9 @@ prereq_checks() {
 	fi
 
 	if command -v ss &>/dev/null ; then
-		PORT_5432_IN_USE=$(ss --tcp --numeric --listening | grep --count 'LISTEN.*:5432 ')
+		PORT_5432_IN_USE=$(ss --tcp --numeric --listening | grep --count 'LISTEN.*:5432 ' || true)
 	else
-		PORT_5432_IN_USE=$(netstat --tcp --numeric --listening | grep --count ':5432 .*LISTEN')
+		PORT_5432_IN_USE=$(netstat --tcp --numeric --listening | grep --count ':5432 .*LISTEN' || true)
 	fi
 	IGNORE_WARNING=${IGNORE_WARNING:-"false"}
 	if [[ $FRESH_INSTALL == "true" && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == "false" ]] ; then
