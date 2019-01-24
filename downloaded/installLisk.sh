@@ -60,8 +60,8 @@ prereq_checks() {
 	else
 		PORT_5432_IN_USE=$(netstat --tcp --numeric --listening | grep --count ':5432 .*LISTEN')
 	fi
-	IGNORE_WARNING=${IGNORE_WARNING:-'false'}
-	if [[ $FRESH_INSTALL == 'true' && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == 'false' ]] ; then
+	IGNORE_WARNING=${IGNORE_WARNING:-"false"}
+	if [[ $FRESH_INSTALL == "true" && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == "false" ]] ; then
 		echo "Error: A process is already listening on port 5432"
 		echo "PostgreSQL by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
 		echo "To proceed anyway, use the -i flag to ignore warning"
@@ -190,7 +190,7 @@ backup_lisk() {
 
 start_lisk() { # Parse the various startup flags
 	cd "$LISK_INSTALL" || exit 2
-	if [[ "$REBUILD" == true ]]; then
+	if [[ "$REBUILD" == "true" ]]; then
 		if [[ -z "$URL" ]]; then
 			echo "Starting Lisk with official snapshot"
 			bash lisk.sh rebuild
@@ -259,8 +259,8 @@ usage() {
 parse_option() {
 	# defaults
 	LOCAL_TAR=""
-	IGNORE_WARNING='false'
-	REBUILD=false
+	IGNORE_WARNING="false"
+	REBUILD="false"
 	URL=""
 	LISK_VERSION_NUMBER=""
 	#
@@ -275,8 +275,8 @@ parse_option() {
 			d) LISK_LOCATION="$OPTARG" ;;
 			f) LOCAL_TAR="$OPTARG" ;;
 			r) RELEASE="$OPTARG" ;;
-			h) REBUILD=true ;;
-			i) IGNORE_WARNING='true' ;;
+			h) REBUILD="true" ;;
+			i) IGNORE_WARNING="true" ;;
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			s) LISK_VERSION_NUMBER="$OPTARG" ;;
@@ -299,7 +299,7 @@ parse_option() {
 
 case "$1" in
 "install")
-	FRESH_INSTALL='true'
+	FRESH_INSTALL="true"
 	parse_option "$@"
 	prereq_checks
 	user_prompts
@@ -309,7 +309,7 @@ case "$1" in
 	start_lisk
 	;;
 "upgrade")
-	FRESH_INSTALL='false'
+	FRESH_INSTALL="false"
 	parse_option "$@"
 	prereq_checks
 	user_prompts
