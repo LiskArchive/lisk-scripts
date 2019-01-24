@@ -296,8 +296,13 @@ set_logs_paths() {
 }
 
 stop_lisk() {
+	get_status
 	pm2 delete "$PM2_CONFIG" >> "$SH_LOG_FILE"
-	echo "[+] Lisk stopped successfully."
+	if [ "$STATUS" -eq 0 ] ; then
+		echo "[+] Lisk stopped successfully."
+	else
+		echo "[+] Lisk is not running"
+	fi
 	stop_redis
 }
 
@@ -319,22 +324,24 @@ pm2_cleanup() {
 	pm2 kill
 }
 
-check_status() {
+get_status() {
 	PM2_PID="$( pm2 jlist 2>/dev/null | jq -r ".[] | select(.name == \"$PM2_APP\").pm2_env.pm_pid_path" 2>/dev/null)"
 
-	if [ ! -z "$PM2_PID" ]; then
+	if [ -n "$PM2_PID" ]; then
 		pm2 describe "$PM2_APP" >> "$SH_LOG_FILE"
 		check_pid
 	else
 		STATUS=1
 	fi
+}
 
+check_status() {
+	get_status
 	if [ "$STATUS" -eq 0  ]; then
 		echo "[+] Lisk is running as PID: $PID"
 		blockheight
 	else
 		echo "[-] Lisk is not running"
-		sync # flush output before exit
 		exit 1
 	fi
 }
