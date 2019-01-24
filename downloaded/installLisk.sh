@@ -55,11 +55,15 @@ prereq_checks() {
 		exit 2
 	fi
 
-	PORT_5432_IN_USE=$(netstat -tna | grep -c ':5432 .*LISTEN')
+	if command -v ss &>/dev/null ; then
+		PORT_5432_IN_USE=$(ss --tcp --numeric --listening | grep --count 'LISTEN.*:5432 ')
+	else
+		PORT_5432_IN_USE=$(netstat --tcp --numeric --listening | grep --count ':5432 .*LISTEN')
+	fi
 	IGNORE_WARNING=${IGNORE_WARNING:-'false'}
 	if [[ $FRESH_INSTALL == 'true' && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == 'false' ]] ; then
 		echo "Error: A process is already listening on port 5432"
-		echo "Postgresql by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
+		echo "PostgreSQL by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
 		echo "To proceed anyway, use the -i flag to ignore warning"
 		exit 2
 	fi
