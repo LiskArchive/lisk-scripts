@@ -320,16 +320,21 @@ pm2_cleanup() {
 }
 
 check_status() {
-	PM2_PID="$( pm2 jlist |jq -r ".[] | select(.name == \"$PM2_APP\").pm2_env.pm_pid_path" )"
+	PM2_PID="$( pm2 jlist 2>/dev/null | jq -r ".[] | select(.name == \"$PM2_APP\").pm2_env.pm_pid_path" 2>/dev/null)"
 
-	pm2 describe "$PM2_APP" >> "$SH_LOG_FILE"
+	if [ ! -z "$PM2_PID" ]; then
+		pm2 describe "$PM2_APP" >> "$SH_LOG_FILE"
+		check_pid
+	else
+		STATUS=1
+	fi
 
-	check_pid
 	if [ "$STATUS" -eq 0  ]; then
 		echo "[+] Lisk is running as PID: $PID"
 		blockheight
 	else
 		echo "[-] Lisk is not running"
+		sync # flush output before exit
 		exit 1
 	fi
 }
