@@ -325,7 +325,7 @@ pm2_cleanup() {
 }
 
 get_status() {
-	PM2_PID="$( pm2 jlist 2>/dev/null | jq -r ".[] | select(.name == \"$PM2_APP\").pm2_env.pm_pid_path" 2>/dev/null)"
+	PM2_PID="$( pm2 --silent jlist | jq --raw-output ".[] | select(.name == \"$PM2_APP\").pm2_env.pm_pid_path" )"
 
 	if [ -n "$PM2_PID" ]; then
 		pm2 describe "$PM2_APP" >> "$SH_LOG_FILE"
