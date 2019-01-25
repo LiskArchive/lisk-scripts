@@ -54,6 +54,19 @@ prereq_checks() {
 		echo "Error: tar is not installed. Exiting."
 		exit 2
 	fi
+
+	if command -v ss &>/dev/null ; then
+		PORT_5432_IN_USE=$(ss --tcp --numeric --listening | grep --count 'LISTEN.*:5432 ' || true)
+	else
+		PORT_5432_IN_USE=$(netstat --tcp --numeric --listening | grep --count ':5432 .*LISTEN' || true)
+	fi
+	IGNORE_WARNING=${IGNORE_WARNING:-"false"}
+	if [[ $FRESH_INSTALL == "true" && $PORT_5432_IN_USE -gt 0 && "$IGNORE_WARNING" == "false" ]] ; then
+		echo "Error: A process is already listening on port 5432"
+		echo "PostgreSQL by default listens on 127.0.0.1:5432 and attempting to run two instances at the same time will result in this installation failing"
+		echo "To proceed anyway, use the -i flag to ignore warning"
+		exit 2
+	fi
 }
 
 user_prompts() {
@@ -177,7 +190,7 @@ backup_lisk() {
 
 start_lisk() { # Parse the various startup flags
 	cd "$LISK_INSTALL" || exit 2
-	if [[ "$REBUILD" == true ]]; then
+	if [[ "$REBUILD" == "true" ]]; then
 		if [[ -z "$URL" ]]; then
 			echo "Starting Lisk with official snapshot"
 			bash lisk.sh rebuild
@@ -237,6 +250,7 @@ usage() {
 	echo " -f <FILE>          -- use a local tarball to install"
 	echo " -r <main|test|beta> -- choose network (default: main)"
 	echo " -h                 -- rebuild instead of copying database"
+	echo " -i                 -- ignore warning"
 	echo " -u <URL>           -- URL to rebuild from - Requires -h"
 	echo " -0 <yes|no>        -- force sync from 0 (default: no)"
 	echo " -s <LISK_VERSION_NUMBER>  -- specify a version of lisk-core. ex: -s 1.0.2. By default, the latest version will be installed"
@@ -245,7 +259,8 @@ usage() {
 parse_option() {
 	# defaults
 	LOCAL_TAR=""
-	REBUILD=false
+	IGNORE_WARNING="false"
+	REBUILD="false"
 	URL=""
 	LISK_VERSION_NUMBER=""
 	#
@@ -254,13 +269,14 @@ parse_option() {
 # LISK_LOCATION, RELEASE, SYNC
 
 	OPTIND=2
-	while getopts :d:f:r:u:s:h0: OPT; do
+	while getopts :d:f:r:u:s:hi0: OPT; do
 		# shellcheck disable=SC2220
 		case "$OPT" in
 			d) LISK_LOCATION="$OPTARG" ;;
 			f) LOCAL_TAR="$OPTARG" ;;
 			r) RELEASE="$OPTARG" ;;
-			h) REBUILD=true ;;
+			h) REBUILD="true" ;;
+			i) IGNORE_WARNING="true" ;;
 			u) URL="$OPTARG" ;;
 			0) SYNC="$OPTARG" ;;
 			s) LISK_VERSION_NUMBER="$OPTARG" ;;
@@ -283,7 +299,7 @@ parse_option() {
 
 case "$1" in
 "install")
-	FRESH_INSTALL='true'
+	FRESH_INSTALL="true"
 	parse_option "$@"
 	prereq_checks
 	user_prompts
@@ -293,7 +309,7 @@ case "$1" in
 	start_lisk
 	;;
 "upgrade")
-	FRESH_INSTALL='false'
+	FRESH_INSTALL="false"
 	parse_option "$@"
 	prereq_checks
 	user_prompts
