@@ -129,6 +129,8 @@ install_lisk() {
 	tar xf "$LISK_VERSION" -C "$LISK_LOCATION"
 	mv "$LISK_LOCATION/$LISK_DIR" "$LISK_INSTALL"
 
+	sed -i -r -e "s/^(export LISK_NETWORK=).*/\\1${RELEASE}net/" "$LISK_INSTALL/env.sh"
+
 	# if user is specifying a tarball, we probably don't want to delete it
 	if [[ -z "$LOCAL_TAR" ]]; then
 		echo "Cleaning up downloaded files"
