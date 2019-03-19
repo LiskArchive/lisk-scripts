@@ -47,7 +47,7 @@ if [[ -z $TARGET_HEIGHT ]]; then
 fi
 
 # be nice and fail fast
-if [[ ! -z "$LISK_MASTER_PASSWORD" ]]; then
+if [[ -n "$LISK_MASTER_PASSWORD" ]]; then
 	if [[ $( echo -n "$LISK_MASTER_PASSWORD" |wc -c ) -lt 5 ]]; then
 		echo "LISK_MASTER_PASSWORD must be at least 5 characters long."
 		exit 2
