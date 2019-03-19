@@ -6,9 +6,6 @@ pipeline {
         dir('downloaded') {
 	  sh 'shellcheck -x *.sh'
 	}
-        dir('packaged') {
-	  sh 'shellcheck -x *.sh'
-	}
       }
     }
   }

@@ -218,10 +218,10 @@ upgrade_lisk() {
 
 	if [[ "$( "$LISK_OLD_PG/bin/postgres" -V )" != "postgres (PostgreSQL) 10".* ]]; then
 		set +u
-		# shellcheck source=../packaged/env.sh
+		# shellcheck disable=SC1090
 		. "$LISK_INSTALL/env.sh"
 		set -u
-		# shellcheck source=../packaged/shared.sh
+		# shellcheck disable=SC1090
 		. "$LISK_INSTALL/shared.sh"
 		pg_ctl initdb -D "$LISK_NEW_PG/data" &>>$LOG_FILE
 		ABS_LOG_FILE="$( pwd )/$LOG_FILE"

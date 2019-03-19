@@ -1,6 +1,6 @@
 # Lisk Scripts
 
-This repository contains various `bash` and `node` scripts used to install and manage [Lisk](https://github.com/LiskHQ/lisk). These scripts were originally maintained within [Lisk Build](https://github.com/LiskHQ/lisk-build), but are now developed here for independent release management.
+This repository contains various `bash` scripts used to install and manage [Lisk](https://github.com/LiskHQ/lisk). These scripts were originally maintained within [Lisk Build](https://github.com/LiskHQ/lisk-build), but are now developed here for independent release management.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
@@ -12,38 +12,7 @@ This repository contains various `bash` and `node` scripts used to install and m
 
     Installs or upgrades the official Lisk binary packages.
 
-- **Packaged** scripts included in each [Lisk Build](https://github.com/LiskHQ/lisk-build):
-
-  - `env.sh`
-
-    Sets various environment variables used by other scripts.
-
   - `lisk_bridge.sh`
-
-    Migrates a Lisk installation from one version to the next, acting as a bridge between hard forks.
-
-  - `lisk_snapshot.sh`
-
-    Generates verified blockchain snapshots against a running instance of Lisk.
-
-  - `lisk.sh`
-
-    Manages the Lisk application process and attached postgres database.
-
-  - `shared.sh`
-
-    Defines various `bash` functions used by other scripts.
-
-  - `tune.sh`
-
-    Optimizes the `postgres` configuration according to the memory of the host machine.
-
-## Authors
-
-- https://github.com/karmacoma
-- https://github.com/Isabello
-- https://github.com/Gr33nDrag0n69
-- https://github.com/Nazgolze
 
 ## Contributors
 
