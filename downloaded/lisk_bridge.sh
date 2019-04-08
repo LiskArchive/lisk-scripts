@@ -20,7 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-# VERSION 0.3.7
+# VERSION 0.8.0
 # This version bridges 1.0 versions of lisk core to 1.1
 set -eo pipefail
 
