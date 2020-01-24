@@ -218,7 +218,7 @@ upgrade_lisk() {
 	echo "Restoring Database to new Lisk Install"
 	mkdir --mode=0700 "$LISK_INSTALL/pgsql/data"
 
-	if [[ "$( "$LISK_OLD_PG/bin/postgres" -V )" != "postgres (PostgreSQL) 10".* ]]; then
+	if [[ "$( "$LISK_OLD_PG/bin/postgres" -V )" != "postgres (PostgreSQL) 12".* ]]; then
 		set +u
 		# shellcheck disable=SC1090
 		. "$LISK_INSTALL/env.sh"
