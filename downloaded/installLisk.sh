@@ -223,8 +223,6 @@ upgrade_lisk() {
 		# shellcheck disable=SC1090
 		. "$LISK_INSTALL/env.sh"
 		set -u
-		# shellcheck disable=SC1090
-		. "$LISK_INSTALL/shared.sh"
 		pg_ctl initdb -D "$LISK_NEW_PG/data" &>>$LOG_FILE
 		ABS_LOG_FILE="$( pwd )/$LOG_FILE"
 		TEMP=$( mktemp -d )
