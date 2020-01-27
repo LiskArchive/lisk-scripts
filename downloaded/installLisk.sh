@@ -19,7 +19,7 @@ IFS=$'\n\t'
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ######################################################################
 
-# VERSION 0.7.1
+# VERSION 0.9.0
 
 # Variable Declaration
 DEFAULT_LISK_LOCATION=$( pwd )
@@ -218,13 +218,11 @@ upgrade_lisk() {
 	echo "Restoring Database to new Lisk Install"
 	mkdir --mode=0700 "$LISK_INSTALL/pgsql/data"
 
-	if [[ "$( "$LISK_OLD_PG/bin/postgres" -V )" != "postgres (PostgreSQL) 10".* ]]; then
+	if [[ "$( "$LISK_OLD_PG/bin/postgres" -V )" != "postgres (PostgreSQL) 12".* ]]; then
 		set +u
 		# shellcheck disable=SC1090
 		. "$LISK_INSTALL/env.sh"
 		set -u
-		# shellcheck disable=SC1090
-		. "$LISK_INSTALL/shared.sh"
 		pg_ctl initdb -D "$LISK_NEW_PG/data" &>>$LOG_FILE
 		ABS_LOG_FILE="$( pwd )/$LOG_FILE"
 		TEMP=$( mktemp -d )
