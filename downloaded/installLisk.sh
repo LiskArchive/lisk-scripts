@@ -26,6 +26,7 @@ DEFAULT_LISK_LOCATION=$( pwd )
 DEFAULT_RELEASE=main
 DEFAULT_SYNC=no
 LOG_FILE=installLisk.out
+MINSPACE=31108264
 
 # Setup logging
 exec > >(tee -ia $LOG_FILE)
@@ -77,15 +78,21 @@ user_prompts() {
 		exit 2;
 	fi
 
+	FREESPACE=$(df -k --output=avail $LISK_LOCATION | tail -n1)  
+	if [[ $FREESPACE -lt $MINSPACE ]]; then
+		echo -e "There is probably not enough free space in $LISK_LOCATION to run the node."
+		exit 2;
+	fi;
+
 	[ "${RELEASE:-}" ] || read -r -p "Would you like to install the Main or Test Client? (Default $DEFAULT_RELEASE): " RELEASE
-	RELEASE=${RELEASE:-$DEFAULT_RELEASE}
+	RELEASE=$(echo ${RELEASE:-$DEFAULT_RELEASE} | tr "[:upper:]" "[:lower:]")
 	if [ "$RELEASE" != "main" ] && [ "$RELEASE" != "test" ] && [ "$RELEASE" != "beta" ]; then
 		echo "$RELEASE is not valid, please check and re-execute"
 		exit 2;
 	fi
 
 	[ "${SYNC:-}" ] || read -r -p "Would you like to synchronize from the Genesis Block? (Default $DEFAULT_SYNC): " SYNC
-	SYNC=${SYNC:-$DEFAULT_SYNC}
+	SYNC=$(echo ${SYNC:-$DEFAULT_SYNC} | tr "[:upper:]" "[:lower:]")
 	if [ "$SYNC" != "no" ] && [ "$SYNC" != "yes" ]; then
 		echo "$SYNC is not valid, please check and re-execute"
 		exit 2;
